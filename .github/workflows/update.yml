@@ -1,1 +1,26 @@
+name: Actualizar datos
 
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # cada 3 horas (hora UTC)
+  workflow_dispatch:         # botón manual en la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Bajar datos
+        run: node scripts/update.mjs
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data.json
+          git diff --cached --quiet || (git commit -m "Actualizar datos" && git push)
