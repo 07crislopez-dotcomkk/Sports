@@ -1,1 +1,316 @@
-# Sports
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deportes hoy</title>
+<style>
+:root{
+  --bg:#1E4E8C; --panel:#163C6F; --accent:#D9E94B; --fg:#F4F7FA;
+  --mute:#A9C4E6; --sub:#CFE0F5; --ink:#0F2A4A; --bad:#F2A19A;
+}
+body[data-theme="nfl"]{--bg:#1F6B3A;--panel:#154A2C;--accent:#FFC72C;--fg:#F6FAF5;--mute:#A9D3B4;--sub:#D5EBDA;--ink:#10301B}
+body[data-theme="f1"]{--bg:#D40F14;--panel:#15151C;--accent:#FFD23F;--fg:#FFFFFF;--mute:#B0B0C0;--sub:#FFE0DE;--ink:#15151C}
+body[data-theme="futbol"]{--bg:#E8590C;--panel:#12213F;--accent:#FFE066;--fg:#FFFFFF;--mute:#A8B7D6;--sub:#FFE6D6;--ink:#12213F}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  line-height:1.4;transition:background .25s ease;padding-bottom:60px;
+}
+h1,h2,.big{font-family:"Avenir Next Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{max-width:600px;margin:0 auto}
+/* tab bar */
+nav{position:sticky;top:0;z-index:5;background:var(--panel);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px}
+nav button{padding:9px 0 7px;border-radius:12px;font-weight:700;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--mute)}
+nav button span{font-size:20px;line-height:1.1}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--ink)}
+/* header */
+.head{padding:22px 16px 18px}
+.head h1{font-size:56px;line-height:.95;font-weight:700;letter-spacing:-.01em}
+.head p{color:var(--sub);margin-top:8px;font-size:15px}
+.upd{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--ink);font-weight:700;padding:10px 18px;border-radius:999px;font-size:15px}
+.btn[disabled]{opacity:.6;cursor:progress}
+.btn.more{display:block;margin:14px auto 4px;font-size:14px;padding:8px 16px}
+.stamp{font-size:13px;color:var(--sub)}
+.err{background:var(--panel);border-left:4px solid var(--bad);color:var(--fg);padding:10px 14px;margin:0 16px 14px;font-size:14px}
+/* bands */
+.band{background:var(--panel);padding:16px 16px 12px;margin-bottom:16px}
+.band h2{font-size:28px;line-height:1.05;margin-bottom:4px}
+.hint{color:var(--mute);font-size:13.5px;margin-bottom:12px}
+.day{font-weight:700;font-size:15px;color:var(--accent);margin:16px 0 2px}
+.day:first-of-type{margin-top:6px}
+/* rows */
+.row{padding:11px 0;border-top:1px solid rgba(255,255,255,.12)}
+.row:first-of-type{border-top:0}
+.teams{font-size:17px;font-weight:700;line-height:1.2}
+.teams i{font-style:normal;color:var(--mute);font-weight:500;padding:0 6px}
+.when{font-size:13.5px;color:var(--mute);margin-top:2px}
+.score{float:right;font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif;font-size:22px;font-weight:700}
+.live{display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:4px}
+.live i{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}80%,100%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}body{transition:none}}
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:2px solid var(--fg);color:var(--fg);padding:6px 14px;border-radius:999px;font-weight:600;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--ink)}
+.chips.inband{padding:0 0 12px}
+.band .chip{border-color:var(--mute);color:var(--fg)}
+.band .chip[aria-pressed="true"]{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+/* tables */
+.tb{display:grid;grid-template-columns:30px 1fr 38px 44px;gap:6px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.12);font-size:15px}
+.tb.h{border-top:0;color:var(--mute);font-size:12.5px;padding-top:0}
+.tb .r{font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif;font-size:20px;font-weight:700;text-align:right}
+.tb .n{font-weight:600}
+.tb .c{text-align:right;color:var(--mute)}
+.tb .p{text-align:right;font-weight:700}
+.tb.top .r{color:var(--accent)}
+.tb.tb3{grid-template-columns:30px 1fr 60px}
+.res{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.12);font-size:15px}
+.res:first-of-type{border-top:0}
+.res small{display:block;color:var(--mute);font-size:12.5px}
+.res b{font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif;font-size:19px;white-space:nowrap}
+/* tennis events */
+.ev{padding:13px 0;border-top:1px solid rgba(255,255,255,.12)}
+.ev:first-of-type{border-top:0}
+.ev.hot{border-top:0;border-left:5px solid var(--accent);padding-left:12px;margin:6px 0}
+.ev .d{font-size:13.5px;color:var(--mute)}
+.ev .n{font-size:22px;font-weight:700;line-height:1.15;margin:1px 0 4px;font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif}
+.tag{display:inline-block;background:rgba(255,255,255,.14);border-radius:999px;padding:1px 10px;font-size:12.5px;font-weight:700;margin-left:6px;vertical-align:2px;font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif}
+.tag.m{background:var(--accent);color:var(--ink)}
+.note{background:rgba(255,255,255,.08);border-left:4px solid var(--accent);padding:7px 11px;font-size:13.5px;margin-top:8px}
+/* watchlist */
+.p{display:grid;grid-template-columns:32px 1fr 44px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.12)}
+.p:first-of-type{border-top:0}
+.p .r{font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif;font-size:26px;font-weight:700;text-align:right}
+.p.t10 .r{color:var(--accent)}
+.p .n{font-size:17px;font-weight:600}
+.p .s{font-size:12.5px;color:var(--mute)}
+.star{width:44px;height:44px;border-radius:50%;border:2px solid var(--mute);display:grid;place-items:center}
+.star svg{width:22px;height:22px;fill:none;stroke:var(--mute);stroke-width:2;stroke-linejoin:round}
+.star[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.star[aria-pressed="true"] svg{fill:var(--ink);stroke:var(--ink)}
+.count{font-size:13.5px;color:var(--mute);margin-bottom:6px}
+.count b{color:var(--accent)}
+.empty{padding:14px 0;color:var(--mute);font-size:14.5px}
+.foot{font-size:12.5px;color:var(--sub);padding:0 16px;margin-top:6px}
+.mex{border:2px dashed var(--accent);padding:10px 12px;margin-top:12px;font-size:15px}
+</style>
+</head>
+<body data-theme="tenis">
+<nav role="tablist" aria-label="Deportes">
+  <button role="tab" data-tab="tenis" aria-selected="true"><span>🎾</span>Tenis</button>
+  <button role="tab" data-tab="nfl" aria-selected="false"><span>🏈</span>NFL</button>
+  <button role="tab" data-tab="f1" aria-selected="false"><span>🏎️</span>F1</button>
+  <button role="tab" data-tab="futbol" aria-selected="false"><span>⚽</span>Fútbol</button>
+</nav>
+<main id="app"></main>
+
+<script>
+/* ============ CONFIG ============ */
+const TZ = "America/Hermosillo";
+const AUTO_REFRESH_MIN = 10;   // cada cuántos minutos recarga data.json si dejas la página abierta
+
+/* ============ ESTADO ============ */
+let D = null;
+const S = { tab:"tenis", filter:"todos", conf:"AFC", league:"epl", favs:new Set(), show:{}, busy:false, err:"" };
+try { S.favs = new Set(JSON.parse(localStorage.getItem("favs") || "[]")); } catch(e){}
+const saveFavs = () => { try { localStorage.setItem("favs", JSON.stringify([...S.favs])); } catch(e){} };
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ============ FECHAS (hora de Hermosillo) ============ */
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const curYear = new Date().getFullYear();
+const fDay = iso => {
+  const d = new Date(iso);
+  const opt = {timeZone:TZ, weekday:"long", day:"numeric", month:"long"};
+  if (Number(new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric"}).format(d)) !== curYear) opt.year = "numeric";
+  return cap(new Intl.DateTimeFormat("es-MX", opt).format(d));
+};
+const fTime = iso => new Intl.DateTimeFormat("es-MX",{timeZone:TZ,hour:"numeric",minute:"2-digit",hour12:true}).format(new Date(iso)).replace(/\s/g," ");
+const dKey = iso => new Intl.DateTimeFormat("en-CA",{timeZone:TZ}).format(new Date(iso));
+const fShort = iso => cap(new Intl.DateTimeFormat("es-MX",{timeZone:TZ,day:"numeric",month:"short"}).format(new Date(iso)));
+const fRange = (a,b) => `${fShort(a)} a ${fShort(b)}`;
+const fYmd = ymd => cap(new Intl.DateTimeFormat("es-MX",{timeZone:"UTC",weekday:"short",day:"numeric",month:"long",year:"numeric"}).format(new Date(ymd+"T12:00:00Z")));
+const stampTxt = iso => "Datos de " + new Intl.DateTimeFormat("es-MX",{timeZone:TZ,day:"numeric",month:"short",hour:"numeric",minute:"2-digit",hour12:true}).format(new Date(iso)).replace(/\s/g," ");
+const todayTxt = () => cap(new Intl.DateTimeFormat("es-MX",{timeZone:TZ,weekday:"long",day:"numeric",month:"long"}).format(new Date()));
+
+/* ============ PIEZAS ============ */
+const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1L3.2 9.6l6.1-.8z"/></svg>';
+
+function header(title, sub){
+  return `<div class="head"><h1>${title}</h1><p>${sub}</p>
+    <div class="upd"><button class="btn" data-act="refresh" ${S.busy?"disabled":""}>${S.busy?"Buscando…":"Actualizar"}</button>
+    <span class="stamp">${D?.generatedAt ? esc(stampTxt(D.generatedAt)) : ""}</span></div></div>
+    ${S.err ? `<div class="err">${esc(S.err)}</div>` : ""}`;
+}
+const noData = () => `<div class="empty" style="padding:16px">Todavía no hay datos.</div>`;
+
+function moreBtn(key, total, shown){
+  return total > shown ? `<button class="btn more" data-act="more" data-v="${key}">Ver más (${total-shown})</button>` : "";
+}
+const teamsLine = (m, nfl) => nfl ? `${esc(m.a)}<i>en</i>${esc(m.h)}` : `${esc(m.h)}<i>vs</i>${esc(m.a)}`;
+
+function liveList(list, nfl){
+  return (list||[]).map(m => `<div class="row"><div class="live"><i></i>En juego</div>
+    <div class="teams">${teamsLine(m,nfl)}<span class="score">${nfl ? `${m.sa}-${m.sh}` : `${m.sh}-${m.sa}`}</span></div>
+    <div class="when">${esc(m.detail)}</div></div>`).join("");
+}
+function nextList(list, key, nfl){
+  if(!list || !list.length) return `<div class="empty">No hay partidos programados por ahora.</div>`;
+  const n = S.show[key] || 15;
+  let out = "", last = "";
+  list.slice(0,n).forEach(m => {
+    const k = dKey(m.date);
+    if(k !== last){ out += `<div class="day">${fDay(m.date)}</div>`; last = k; }
+    out += `<div class="row"><div class="teams">${teamsLine(m,nfl)}</div><div class="when">${fTime(m.date)}</div></div>`;
+  });
+  return out + moreBtn(key, list.length, n);
+}
+function resultsList(list, nfl){
+  if(!list || !list.length) return `<div class="empty">Sin resultados recientes.</div>`;
+  return list.map(m => nfl
+    ? `<div class="res"><span>${esc(m.a)} en ${esc(m.h)}<small>${fShort(m.date)}</small></span><b>${m.sa} a ${m.sh}</b></div>`
+    : `<div class="res"><span>${esc(m.h)} vs ${esc(m.a)}<small>${fShort(m.date)}</small></span><b>${m.sh} a ${m.sa}</b></div>`).join("");
+}
+function table(rows){
+  if(!rows || !rows.length) return `<div class="empty">Sin tabla por ahora.</div>`;
+  return `<div class="tb h"><span></span><span>Equipo</span><span class="c">PJ</span><span class="c">Pts</span></div>` +
+    rows.map((r,i)=>`<div class="tb ${i<4?"top":""}"><span class="r">${i+1}</span><span class="n">${esc(r.team)}</span><span class="c">${esc(r.pj)}</span><span class="p">${esc(r.pts)}</span></div>`).join("");
+}
+function evList(list, key, limit){
+  if(!list || !list.length) return `<div class="empty">Sin torneos confirmados por ahora.</div>`;
+  const n = S.show[key] || limit;
+  const big = /australian open|roland garros|french open|wimbledon|us open/i;
+  const m1000 = /masters|indian wells|miami|monte.carlo|madrid|rome|italian|canadian|cincinnati|shanghai|paris/i;
+  const html = list.slice(0,n).map(e => {
+    const major = big.test(e.name), master = m1000.test(e.name);
+    const tag = major ? "Grand Slam" : master ? "Masters / 1000" : "";
+    return `<div class="ev ${(major||master)?"hot":""}"><div class="d">${esc(fRange(e.start,e.end))}</div>
+      <div class="n">${esc(e.name)}${tag?`<span class="tag m">${tag}</span>`:""}</div></div>`;
+  }).join("");
+  return html + moreBtn(key, list.length, n);
+}
+
+/* ============ VISTAS ============ */
+function viewTenis(){
+  const T = D.tennis; if(!T) return header("Tenis", todayTxt()) + noData();
+  const f = S.filter;
+  const rows = T.top.filter(p => f==="todos" ? true : f==="fav" ? S.favs.has(p.name) : f==="t10" ? p.rank<=10 : p.rank>10);
+  const chips = [["todos","Todos"],["fav","Mis estrellas"],["t10","Top 10"],["t20","11 a 20"]]
+    .map(([k,l])=>`<button class="chip" data-act="filter" data-v="${k}" aria-pressed="${f===k}">${l}</button>`).join("");
+  const nowBand = (T.now && T.now.length)
+    ? `<div class="band"><h2>Hoy</h2>${T.now.map(e=>`<div class="ev"><div class="live"><i></i>En curso</div><div class="n">${esc(e.name)}</div></div>`).join("")}</div>` : "";
+  const watch = rows.length ? rows.map(p=>{
+    const mv = p.prev - p.rank;
+    const arrow = mv>0 ? `<span style="color:var(--accent)"> ▲${mv}</span>` : mv<0 ? `<span style="color:var(--bad)"> ▼${-mv}</span>` : "";
+    return `<div class="p ${p.rank<=10?"t10":""}"><div class="r">${p.rank}</div>
+      <div><div class="n">${esc(p.name)}</div><div class="s">${Number(p.points).toLocaleString("es-MX")} pts${arrow}</div></div>
+      <button class="star" data-act="star" data-v="${esc(p.name)}" aria-pressed="${S.favs.has(p.name)}" aria-label="Seguir a ${esc(p.name)}">${STAR}</button></div>`;
+  }).join("") : `<div class="empty">${f==="fav"?"Todavía no marcas a nadie. Toca la estrella junto a un jugador.":"Nadie en este filtro."}</div>`;
+  return header("Tenis", todayTxt()) + nowBand + `
+    <div class="band"><h2>Próximos torneos, hombres</h2><p class="hint">Hasta el US Open ${new Date(D.horizon).getUTCFullYear()}.</p>${evList(T.atp,"atp",6)}</div>
+    <div class="band"><h2>Próximos torneos, mujeres</h2>${evList(T.wta,"wta",6)}</div>
+    <div class="band"><h2>Mi watchlist: Top 20 ATP</h2>
+      <p class="hint">Toca la estrella para marcar a quién sigues. ▲ y ▼ comparan con el ranking anterior.</p>
+      <div class="chips inband" role="group" aria-label="Filtros">${chips}</div>
+      <div class="count">Sigues a <b>${S.favs.size}</b> de 20. Mostrando ${rows.length}.</div>${watch}</div>`;
+}
+
+function viewNfl(){
+  const N = D.nfl; if(!N) return header("NFL", todayTxt()) + noData();
+  const chips = ["AFC","NFC"].map(c=>`<button class="chip" data-act="conf" data-v="${c}" aria-pressed="${S.conf===c}">${c}</button>`).join("");
+  const live = (N.live||[]).length ? `<div class="band"><h2>Ahora</h2>${liveList(N.live,true)}</div>` : "";
+  const conf = (N.conf?.[S.conf]||[]).map((t,i)=>`<div class="tb tb3 ${i<1?"top":""}"><span class="r">${i+1}</span><span class="n">${esc(t.team)}</span><span class="p">${t.w}-${t.l}${t.t?`-${t.t}`:""}</span></div>`).join("");
+  return header("NFL", todayTxt()) + live + `
+    <div class="band"><h2>Próximos partidos</h2><p class="hint">Se lee "Visitante en Local". Hora de Hermosillo.</p>${nextList(N.next,"nfl-next",true)}</div>
+    <div class="band"><h2>Resultados recientes</h2><p class="hint">Visitante en Local, con el marcador.</p>${resultsList(N.results,true)}</div>
+    <div class="band"><h2>Cómo van</h2><p class="hint">Los 7 equipos que hoy entrarían a playoffs.</p>
+      <div class="chips inband">${chips}</div>${conf || `<div class="empty">Sin tabla por ahora.</div>`}</div>`;
+}
+
+function viewF1(){
+  const F = D.f1; if(!F) return header("F1", todayTxt()) + noData();
+  const lead = F.drivers?.[0];
+  const last = F.last ? `<div class="band"><h2>Última carrera</h2>
+      <div class="row"><div class="teams">${esc(F.last.gp)}</div><div class="when">${esc(fYmd(F.last.date))}</div>
+      <p style="margin-top:8px">Ganó <b>${esc(F.last.win)}</b>. Segundo, ${esc(F.last.second)}.</p></div></div>` : "";
+  const n = S.show["f1-next"] || 6;
+  const next = (F.next||[]).length
+    ? F.next.slice(0,n).map(r=>`<div class="row"><div class="teams">${r.mx?"🇲🇽 ":""}${esc(r.gp)}</div><div class="when">${esc(fYmd(r.date))}${r.place?`, ${esc(r.place)}`:""}</div></div>`).join("") + moreBtn("f1-next", F.next.length, n)
+    : `<div class="empty">No hay carreras programadas por ahora.</div>`;
+  const drivers = (F.drivers||[]).map((d,i)=>`<div class="tb tb3 ${i<3?"top":""}"><span class="r">${d.pos}</span><span class="n">${d.flag||""} ${esc(d.name)}<span style="display:block;font-size:12.5px;color:var(--mute);font-weight:400">${esc(d.team)}</span></span><span class="p">${d.points}</span></div>`).join("");
+  const mex = F.checo ? `<div class="mex">🇲🇽 <b>${esc(F.checo.name)}</b>, ${esc(F.checo.team)}: ${F.checo.points} puntos (lugar ${F.checo.pos})</div>` : "";
+  const teams = (F.teams||[]).map((t,i)=>`<div class="tb tb3 ${i<1?"top":""}"><span class="r">${i+1}</span><span class="n">${esc(t.name)}</span><span class="p">${t.points}</span></div>`).join("");
+  return header("F1", lead ? `${esc(lead.name)} lidera el campeonato` : todayTxt()) + last + `
+    <div class="band"><h2>Próximas carreras</h2>${next}</div>
+    <div class="band"><h2>Pilotos, top 10</h2><p class="hint">Puntos del campeonato.</p>${drivers}${mex}</div>
+    <div class="band"><h2>Equipos</h2>${teams}</div>`;
+}
+
+function viewFutbol(){
+  const FB = D.futbol; if(!FB) return header("Fútbol", todayTxt()) + noData();
+  const L = FB.leagues[S.league] || FB.leagues[FB.order[0]];
+  const chips = FB.order.map(k=>`<button class="chip" data-act="league" data-v="${k}" aria-pressed="${S.league===k}">${FB.leagues[k].flag} ${esc(FB.leagues[k].name)}</button>`).join("");
+  const live = (L.live||[]).length ? `<div class="band"><h2>Ahora</h2>${liveList(L.live,false)}</div>` : "";
+  return header("Fútbol", todayTxt()) + `<div class="chips" role="group" aria-label="Ligas">${chips}</div>` + live + `
+    <div class="band"><h2>${L.flag} ${esc(L.name)}: próximos</h2><p class="hint">Hora de Hermosillo.</p>${nextList(L.next,"fb-"+S.league,false)}</div>
+    <div class="band"><h2>Tabla, top 10</h2><p class="hint">PJ son partidos jugados. Pts son puntos. Los 4 de arriba van resaltados.</p>${table(L.table)}</div>
+    <div class="band"><h2>Resultados recientes</h2>${resultsList(L.results,false)}</div>`;
+}
+
+function render(){
+  const sl = $(".chips")?.scrollLeft || 0;
+  document.body.dataset.theme = S.tab;
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===S.tab));
+  if(!D){
+    $("#app").innerHTML = header("Deportes", todayTxt()) + `<div class="empty" style="padding:16px">${esc(S.err || "Cargando…")}</div>`;
+    return;
+  }
+  $("#app").innerHTML = ({tenis:viewTenis, nfl:viewNfl, f1:viewF1, futbol:viewFutbol})[S.tab]();
+  const c = $(".chips"); if(c) c.scrollLeft = sl;
+}
+
+/* ============ CARGA DE DATOS ============ */
+async function load(){
+  S.busy = true; render();
+  try{
+    const r = await fetch("data.json?t=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    D = await r.json();
+    S.err = "";
+  }catch(e){
+    S.err = D
+      ? "No pude recargar ahora. Muestro los últimos datos."
+      : "Todavía no existe data.json. En GitHub abre Actions, elige «Actualizar datos» y toca Run workflow.";
+  }
+  S.busy = false; render();
+}
+
+/* ============ EVENTOS ============ */
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-tab],[data-act]"); if(!t) return;
+  if(t.dataset.tab){ S.tab = t.dataset.tab; render(); window.scrollTo({top:0}); return; }
+  const v = t.dataset.v;
+  switch(t.dataset.act){
+    case "filter": S.filter = v; render(); break;
+    case "conf": S.conf = v; render(); break;
+    case "league": S.league = v; render(); break;
+    case "star": S.favs.has(v) ? S.favs.delete(v) : S.favs.add(v); saveFavs(); render(); break;
+    case "more": S.show[v] = (S.show[v] || (v.startsWith("f1")||v==="atp"||v==="wta" ? 6 : 15)) + (v.startsWith("f1")||v==="atp"||v==="wta" ? 6 : 15); render(); break;
+    case "refresh": load(); break;
+  }
+});
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") load(); });
+setInterval(load, AUTO_REFRESH_MIN * 60 * 1000);
+load();
+</script>
+</body>
+</html>
