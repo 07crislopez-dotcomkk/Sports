@@ -8,15 +8,23 @@ const HORIZON = "2027-08-29";
 
 const OUT = "data.json";
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports";
-const ESPN2 = "https://site.api.espn.com/apis/v2/sports";
+const ESPN2 = "https://site.web.api.espn.com/apis/v2/sports";
 const now = new Date();
 const horizonDate = new Date(HORIZON + "T23:59:59Z");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- utilidades ---------- */
 async function getJson(url) {
-  const r = await fetch(url, { headers: { "user-agent": "deportes-hoy/1.0" } });
-  if (!r.ok) throw new Error(r.status + " " + url);
-  return r.json();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; deportes-hoy/1.0)" } });
+      if (!r.ok) throw new Error(r.status + " " + url);
+      return await r.json();
+    } catch (err) {
+      if (attempt === 1) throw err;
+      await sleep(500);
+    }
+  }
 }
 const ymd = d => d.toISOString().slice(0, 10).replaceAll("-", "");
 const stat = (e, name) => e.stats?.find(s => s.name === name)?.value;
@@ -66,6 +74,7 @@ async function collect(path) {
     } catch (err) {
       console.warn("  chunk falló", path, s, err.message);
     }
+    await sleep(150);
   }
   if (!ok) throw new Error("sin datos para " + path);
   const all = [...seen.values()].sort((x, y) => new Date(x.date) - new Date(y.date));
@@ -80,7 +89,7 @@ async function collect(path) {
 /* ---------- NFL ---------- */
 async function nfl() {
   const games = await collect("football/nfl");
-  const j = await getJson(`${ESPN2}/football/nfl/standings`);
+  const j = await getJson(`${ESPN2}/football/nfl/standings?type=0&level=1`);
   const conf = { AFC: [], NFC: [] };
   for (const c of j.children || []) {
     const key = /AFC|american/i.test((c.abbreviation || "") + (c.name || "")) ? "AFC" : "NFC";
@@ -98,17 +107,17 @@ async function nfl() {
 /* ---------- Fútbol ---------- */
 const LEAGUES = [
   ["epl", "eng.1", "Premier League", "🇬🇧"],
-  ["liga", "esp.1", "La Liga", "🇪"],
-  ["seria", "ita.1", "Serie A", "🇮"],
-  ["bund", "ger.1", "Bundesliga", "🇩"],
-  ["ligue1", "fra.1", "Ligue 1", "🇫"],
+  ["liga", "esp.1", "La Liga", "🇪🇸"],
+  ["seria", "ita.1", "Serie A", "🇮🇹"],
+  ["bund", "ger.1", "Bundesliga", "🇩🇪"],
+  ["ligue1", "fra.1", "Ligue 1", "🇫🇷"],
   ["ucl", "uefa.champions", "Champions", "🏆"],
-  ["ligamx", "mex.1", "Liga MX", "🇲"],
+  ["ligamx", "mex.1", "Liga MX", "🇲🇽"],
   ["mls", "usa.1", "MLS", "🇺🇸"]
 ];
 
 async function soccerTable(code) {
-  const j = await getJson(`${ESPN2}/soccer/${code}/standings`);
+  const j = await getJson(`${ESPN2}/soccer/${code}/standings?type=0&level=0`);
   const entries = (j.children || []).flatMap(c => c.standings?.entries || []);
   return entries.map(e => ({
     team: e.team.shortDisplayName || e.team.displayName,
@@ -130,21 +139,49 @@ async function futbol(prev) {
       console.warn("  liga falló", id, e.message);
       if (!leagues[id]) leagues[id] = { name, flag, live: [], next: [], results: [], table: [] };
     }
+    await sleep(200);
   }
   return { order: LEAGUES.map(l => l[0]), leagues };
 }
 
 /* ---------- Tenis ---------- */
-async function tennisCalendar(tour) {
-  const j = await getJson(`${ESPN}/tennis/${tour}/scoreboard`);
-  const cal = j.leagues?.[0]?.calendar || [];
-  const events = cal
-    .filter(c => c && typeof c === "object" && c.label && c.endDate)
-    .map(c => ({ name: c.label, start: c.startDate, end: c.endDate }))
-    .filter(e => new Date(e.end) >= now && new Date(e.start) <= horizonDate)
-    .sort((a, b) => new Date(a.start) - new Date(b.start));
-  const nowPlaying = (j.events || []).map(e => ({ name: e.name || e.shortName })).filter(e => e.name);
-  return { events, nowPlaying };
+async function tennisTournaments(tour, topNames) {
+  const seen = new Map();
+  const from = new Date(now.getTime() - DAY_MS);
+  const surnames = topNames.map(n => n.trim().split(" ").pop().toLowerCase());
+  for (const [s, e] of monthChunks(from, new Date(HORIZON + "T00:00:00Z"))) {
+    try {
+      const j = await getJson(`${ESPN}/tennis/${tour}/scoreboard?dates=${s}-${e}&limit=300`);
+      for (const ev of j.events || []) {
+        const name = ev.shortName || ev.name;
+        if (!name || !ev.date) continue;
+        const cur = seen.get(name) || { name, start: ev.date, end: ev.date, matches: new Map() };
+        if (ev.date < cur.start) cur.start = ev.date;
+        if (ev.date > cur.end) cur.end = ev.date;
+        // Si ESPN trae los partidos individuales dentro del torneo, se capturan aquí.
+        for (const c of ev.competitions || []) {
+          const comps = c.competitors || [];
+          if (comps.length < 2) continue;
+          const p1 = comps[0]?.athlete?.displayName || comps[0]?.athlete?.shortName;
+          const p2 = comps[1]?.athlete?.displayName || comps[1]?.athlete?.shortName;
+          if (!p1 || !p2) continue;
+          const involvesTop = [p1, p2].some(p => surnames.some(sn => p.toLowerCase().includes(sn)));
+          if (!involvesTop) continue;
+          const score = comps.map(x => (x.linescores || []).map(l => l.value).join("-")).filter(Boolean).join(" / ");
+          const status = c.status?.type?.shortDetail || c.status?.type?.description || "";
+          cur.matches.set(c.id || `${p1}-${p2}-${ev.date}`, { p1, p2, score, status });
+        }
+        seen.set(name, cur);
+      }
+    } catch (err) {
+      console.warn("  torneos falló", tour, s, err.message);
+    }
+    await sleep(150);
+  }
+  return [...seen.values()]
+    .filter(t => new Date(t.end) >= new Date(now.getTime() - DAY_MS))
+    .sort((a, b) => new Date(a.start) - new Date(b.start))
+    .map(t => ({ name: t.name, start: t.start, end: t.end, topMatches: [...t.matches.values()].slice(0, 6) }));
 }
 
 async function tennis() {
@@ -157,18 +194,19 @@ async function tennis() {
     name: r.athlete?.displayName || r.athlete?.shortName,
     points: r.points
   }));
-  let atp = [], wta = [], nowPlaying = [];
-  try { const t = await tennisCalendar("atp"); atp = t.events; nowPlaying = t.nowPlaying; } catch (e) { console.warn("  calendario ATP falló", e.message); }
-  try { wta = (await tennisCalendar("wta")).events; } catch (e) { console.warn("  calendario WTA falló", e.message); }
-  return { top, now: nowPlaying, atp, wta };
+  const topNames = top.slice(0, 5).map(p => p.name);
+  let atp = [], wta = [];
+  try { atp = await tennisTournaments("atp", topNames); } catch (e) { console.warn("  torneos ATP falló", e.message); }
+  try { wta = await tennisTournaments("wta", topNames); } catch (e) { console.warn("  torneos WTA falló", e.message); }
+  return { top, atp, wta };
 }
 
 /* ---------- F1 (Jolpica, el sucesor de Ergast) ---------- */
 const FLAGS = {
-  Italian: "🇮", German: "🇩🇪", British: "🇬🇧", Spanish: "🇪🇸", Dutch: "🇳", Monegasque: "🇲",
-  Australian: "🇦🇺", French: "🇫🇷", Thai: "🇹🇭", Mexican: "🇲", Canadian: "🇨🇦", Finnish: "🇫",
-  Japanese: "🇯", "New Zealander": "🇳🇿", Brazilian: "🇧", Argentine: "🇦🇷", American: "🇺🇸",
-  Chinese: "🇨🇳", Danish: "🇩"
+  Italian: "🇮🇹", German: "🇩🇪", British: "🇬🇧", Spanish: "🇪🇸", Dutch: "🇳🇱", Monegasque: "🇲🇨",
+  Australian: "🇦🇺", French: "🇫🇷", Thai: "🇹🇭", Mexican: "🇲🇽", Canadian: "🇨🇦", Finnish: "🇫🇮",
+  Japanese: "🇯🇵", "New Zealander": "🇳🇿", Brazilian: "🇧🇷", Argentine: "🇦🇷", American: "🇺🇸",
+  Chinese: "🇨🇳", Danish: "🇩🇰"
 };
 const J = "https://api.jolpi.ca/ergast/f1";
 
@@ -185,7 +223,7 @@ async function f1() {
     .filter(r => new Date(r.date + "T23:59:59Z") >= now && new Date(r.date) <= horizonDate)
     .map(r => ({
       gp: r.raceName,
-      date: r.date,
+      date: r.time ? `${r.date}T${r.time}` : r.date,
       place: `${r.Circuit?.Location?.locality || ""}, ${r.Circuit?.Location?.country || ""}`,
       mx: /mexico/i.test(r.Circuit?.Location?.country || "")
     }));
