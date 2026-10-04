@@ -1,292 +1,324 @@
-// Baja datos deportivos y los guarda en data.json
-// Corre en GitHub Actions (Node 20, sin dependencias).
-import { readFile, writeFile } from "node:fs/promises";
+// scripts/update.mjs — baja datos de Tenis, NFL, F1 y Fútbol y los guarda en data.json
+import { readFile, writeFile } from 'node:fs/promises';
 
-// Los partidos se traen hasta este día (el día antes del US Open 2027).
-// Cambia esta fecha cuando quieras estirar o acortar el margen.
-const HORIZON = "2027-08-29";
+const OUT = 'data.json';
+const ESPN = 'https://site.api.espn.com/apis/site/v2/sports';
+const ESPN2 = 'https://site.api.espn.com/apis/v2/sports';
+const JOLPICA = 'https://api.jolpi.ca/ergast/f1';
+const US_OPEN_LIMIT = new Date('2027-09-14T00:00:00Z');
 
-const OUT = "data.json";
-const ESPN = "https://site.api.espn.com/apis/site/v2/sports";
-const ESPN2 = "https://site.web.api.espn.com/apis/v2/sports";
-const now = new Date();
-const horizonDate = new Date(HORIZON + "T23:59:59Z");
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-/* ---------- utilidades ---------- */
-async function getJson(url) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const r = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; deportes-hoy/1.0)" } });
-      if (!r.ok) throw new Error(r.status + " " + url);
-      return await r.json();
-    } catch (err) {
-      if (attempt === 1) throw err;
-      await sleep(500);
-    }
-  }
-}
-const ymd = d => d.toISOString().slice(0, 10).replaceAll("-", "");
-const stat = (e, name) => e.stats?.find(s => s.name === name)?.value;
-
-// Parte el rango en meses para que ESPN no recorte resultados
-function monthChunks(from, to) {
-  const out = [];
-  let s = new Date(from);
-  while (s <= to) {
-    const e = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 0));
-    out.push([ymd(s), ymd(e < to ? e : to)]);
-    s = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1));
-  }
-  return out;
-}
-
-// Para deportes de equipo (NFL, fútbol): ESPN no soporta rangos de un mes
-// en el parámetro "dates", así que se parte en bloques de 7 días.
-function weekChunks(from, to) {
-  const out = [];
-  let s = new Date(from);
-  while (s <= to) {
-    const e = new Date(s.getTime() + 6 * 24 * 60 * 60 * 1000);
-    out.push([ymd(s), ymd(e < to ? e : to)]);
-    s = new Date(s.getTime() + 7 * 24 * 60 * 60 * 1000);
-  }
-  return out;
-}
-
-function parseEvents(json) {
-  return (json.events || []).map(ev => {
-    const c = ev.competitions?.[0];
-    const h = c?.competitors?.find(x => x.homeAway === "home");
-    const a = c?.competitors?.find(x => x.homeAway === "away");
-    if (!h || !a) return null;
-    return {
-      h: h.team.shortDisplayName || h.team.displayName,
-      a: a.team.shortDisplayName || a.team.displayName,
-      date: ev.date,
-      state: ev.status?.type?.state,
-      detail: ev.status?.type?.shortDetail || "",
-      sh: Number(h.score ?? 0),
-      sa: Number(a.score ?? 0)
-    };
-  }).filter(Boolean);
-}
-
-// Un día atrás (para que los resultados se queden 24h y luego se quiten solos)
-// + hasta "toDate" (puede ser el horizonte completo o una ventana más corta)
-const DAY_MS = 24 * 60 * 60 * 1000;
-async function collect(path, toDate) {
-  const from = new Date(now.getTime() - DAY_MS);
-  const to = toDate || new Date(HORIZON + "T00:00:00Z");
-  const seen = new Map();
-  let ok = 0;
-  for (const [s, e] of weekChunks(from, to)) {
-    try {
-      const j = await getJson(`${ESPN}/${path}/scoreboard?dates=${s}-${e}&limit=1000`);
-      parseEvents(j).forEach(m => seen.set(m.date + m.h + m.a, m));
-      ok++;
-    } catch (err) {
-      console.warn("  chunk falló", path, s, err.message);
-    }
-    await sleep(400);
-  }
-  if (!ok) throw new Error("sin datos para " + path);
-  const all = [...seen.values()].sort((x, y) => new Date(x.date) - new Date(y.date));
-  return {
-    live: all.filter(m => m.state === "in"),
-    next: all.filter(m => m.state === "pre"),
-    // Solo partidos terminados dentro de las últimas 24 horas; después se caen solos.
-    results: all.filter(m => m.state === "post" && new Date(m.date).getTime() >= from.getTime()).reverse()
-  };
-}
-/* ---------- NFL ---------- */
-async function nfl() {
-  const games = await collect("football/nfl");
-  let conf = { AFC: [], NFC: [] };
-  try {
-    const j = await getJson(`${ESPN2}/football/nfl/standings?type=0&level=1`);
-    for (const c of j.children || []) {
-      const key = /AFC|american/i.test((c.abbreviation || "") + (c.name || "")) ? "AFC" : "NFC";
-      conf[key] = (c.standings?.entries || []).map(e => ({
-        team: e.team.shortDisplayName || e.team.displayName,
-        w: stat(e, "wins") ?? 0,
-        l: stat(e, "losses") ?? 0,
-        t: stat(e, "ties") ?? 0,
-        seed: stat(e, "playoffSeed") ?? 99
-      })).sort((a, b) => a.seed - b.seed || b.w - a.w).slice(0, 7);
-    }
-  } catch (e) { console.warn("  standings NFL falló", e.message); }
-  return { ...games, conf };
-}
-
-/* ---------- Fútbol ---------- */
-const LEAGUES = [
-  ["epl", "eng.1", "Premier League", "🇬🇧"],
-  ["liga", "esp.1", "La Liga", "🇪🇸"],
-  ["seria", "ita.1", "Serie A", "🇮🇹"],
-  ["bund", "ger.1", "Bundesliga", "🇩🇪"],
-  ["ligue1", "fra.1", "Ligue 1", "🇫🇷"],
-  ["ucl", "uefa.champions", "Champions", "🏆"],
-  ["ligamx", "mex.1", "Liga MX", "🇲🇽"],
-  ["mls", "usa.1", "MLS", "🇺🇸"]
+// Las 8 ligas de fútbol. Para cambiar una, cambia el código "id" (códigos de ESPN).
+const LIGAS = [
+  { id: 'eng.1', name: 'Premier League', cc: 'GB' },
+  { id: 'esp.1', name: 'La Liga', cc: 'ES' },
+  { id: 'ita.1', name: 'Serie A', cc: 'IT' },
+  { id: 'ger.1', name: 'Bundesliga', cc: 'DE' },
+  { id: 'fra.1', name: 'Ligue 1', cc: 'FR' },
+  { id: 'mex.1', name: 'Liga MX', cc: 'MX' },
+  { id: 'uefa.champions', name: 'Champions League', cc: '' },
+  { id: 'por.1', name: 'Primeira Liga', cc: 'PT' },
 ];
 
-async function soccerTable(code) {
-  const j = await getJson(`${ESPN2}/soccer/${code}/standings?type=0&level=0`);
-  const entries = (j.children || []).flatMap(c => c.standings?.entries || []);
-  return entries.map(e => ({
-    team: e.team.shortDisplayName || e.team.displayName,
-    pj: stat(e, "gamesPlayed") ?? 0,
-    pts: stat(e, "points") ?? 0
-  })).sort((a, b) => b.pts - a.pts || a.pj - b.pj).slice(0, 10);
-}
+const NFL_WEEKS = 18;
 
-async function futbol(prev) {
-  const leagues = { ...(prev?.leagues || {}) };
-  for (const [id, code, name, flag] of LEAGUES) {
-    try {
-      const g = await collect("soccer/" + code);
-      let table = leagues[id]?.table || [];
-      try { table = await soccerTable(code); } catch (e) { console.warn("  tabla falló", id, e.message); }
-      leagues[id] = { name, flag, ...g, table };
-      console.log("  liga ok", id);
-    } catch (e) {
-      console.warn("  liga falló", id, e.message);
-      if (!leagues[id]) leagues[id] = { name, flag, live: [], next: [], results: [], table: [] };
-    }
-    await sleep(200);
-  }
-  return { order: LEAGUES.map(l => l[0]), leagues };
+async function getJSON(url) {
+  const r = await fetch(url, { headers: { 'user-agent': 'deportes-hoy' } });
+  if (!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.json();
 }
-
-/* ---------- Tenis ---------- */
-async function tennisTournaments(tour, topNames) {
-  const seen = new Map();
-  const from = new Date(now.getTime() - DAY_MS);
-  const surnames = topNames.map(n => n.trim().split(" ").pop().toLowerCase());
-  for (const [s, e] of monthChunks(from, new Date(HORIZON + "T00:00:00Z"))) {
-    try {
-      const j = await getJson(`${ESPN}/tennis/${tour}/scoreboard?dates=${s}-${e}&limit=300`);
-      for (const ev of j.events || []) {
-        const name = ev.shortName || ev.name;
-        if (!name || !ev.date) continue;
-        const cur = seen.get(name) || { name, start: ev.date, end: ev.date, matches: new Map() };
-        if (ev.date < cur.start) cur.start = ev.date;
-        if (ev.date > cur.end) cur.end = ev.date;
-        // Si ESPN trae los partidos individuales dentro del torneo, se capturan aquí.
-        for (const c of ev.competitions || []) {
-          const comps = c.competitors || [];
-          if (comps.length < 2) continue;
-          const p1 = comps[0]?.athlete?.displayName || comps[0]?.athlete?.shortName;
-          const p2 = comps[1]?.athlete?.displayName || comps[1]?.athlete?.shortName;
-          if (!p1 || !p2) continue;
-          const involvesTop = [p1, p2].some(p => surnames.some(sn => p.toLowerCase().includes(sn)));
-          if (!involvesTop) continue;
-          const score = comps.map(x => (x.linescores || []).map(l => l.value).join("-")).filter(Boolean).join(" / ");
-          const status = c.status?.type?.shortDetail || c.status?.type?.description || "";
-          cur.matches.set(c.id || `${p1}-${p2}-${ev.date}`, { p1, p2, score, status });
-        }
-        seen.set(name, cur);
-      }
-    } catch (err) {
-      console.warn("  torneos falló", tour, s, err.message);
-    }
-    await sleep(150);
-  }
-  return [...seen.values()]
-    .filter(t => new Date(t.end) >= new Date(now.getTime() - DAY_MS))
-    .sort((a, b) => new Date(a.start) - new Date(b.start))
-    .map(t => ({ name: t.name, start: t.start, end: t.end, topMatches: [...t.matches.values()].slice(0, 6) }));
-}
-
-async function tennis() {
-  const j = await getJson(`${ESPN}/tennis/atp/rankings`);
-  const ranks = j.rankings?.[0]?.ranks || [];
-  if (ranks.length < 10) throw new Error("ranking incompleto");
-  const top = ranks.slice(0, 20).map(r => ({
-    rank: r.current,
-    prev: r.previous ?? r.current,
-    name: r.athlete?.displayName || r.athlete?.shortName,
-    points: r.points
-  }));
-  const topNames = top.map(p => p.name);
-  let atp = [], wta = [];
-  try { atp = await tennisTournaments("atp", topNames); } catch (e) { console.warn("  torneos ATP falló", e.message); }
-  try { wta = await tennisTournaments("wta", topNames); } catch (e) { console.warn("  torneos WTA falló", e.message); }
-  return { top, atp, wta };
-}
-
-/* ---------- F1 (Jolpica, el sucesor de Ergast) ---------- */
-const FLAGS = {
-  Italian: "🇮🇹", German: "🇩🇪", British: "🇬🇧", Spanish: "🇪🇸", Dutch: "🇳🇱", Monegasque: "🇲🇨",
-  Australian: "🇦🇺", French: "🇫🇷", Thai: "🇹🇭", Mexican: "🇲🇽", Canadian: "🇨🇦", Finnish: "🇫🇮",
-  Japanese: "🇯🇵", "New Zealander": "🇳🇿", Brazilian: "🇧🇷", Argentine: "🇦🇷", American: "🇺🇸",
-  Chinese: "🇨🇳", Danish: "🇩🇰"
+const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
+const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const stat = (e, name) => {
+  const s = (e.stats || []).find((x) => x.name === name);
+  return s && s.value != null ? s.value : null;
 };
-const J = "https://api.jolpi.ca/ergast/f1";
+
+function parseGame(ev) {
+  const c = ev.competitions?.[0];
+  const cs = c?.competitors || [];
+  const side = (h) => {
+    const x = cs.find((y) => y.homeAway === h) || {};
+    const sc = x.score;
+    return {
+      name: x.team?.displayName || '',
+      abbr: x.team?.abbreviation || '',
+      score: sc != null && sc !== '' ? Number(sc) : null,
+      record: x.records?.[0]?.summary || '',
+      winner: !!x.winner,
+    };
+  };
+  return {
+    id: ev.id,
+    date: ev.date,
+    state: ev.status?.type?.state || c?.status?.type?.state || 'pre',
+    detail: ev.status?.type?.shortDetail || '',
+    home: side('home'),
+    away: side('away'),
+  };
+}
+
+/* ---------------- TENIS ---------------- */
+function parseCalendar(arr) {
+  const now = Date.now() - 864e5;
+  const out = (arr || [])
+    .map((c) => (c && typeof c === 'object' ? { name: c.label || c.name, start: c.startDate, end: c.endDate } : null))
+    .filter((c) => c && c.name && c.start)
+    .filter((c) => new Date(c.end || c.start).getTime() >= now && new Date(c.start) <= US_OPEN_LIMIT);
+  const seen = new Set();
+  return out
+    .filter((c) => {
+      const k = c.name + c.start;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .sort((a, b) => new Date(a.start) - new Date(b.start))
+    .map((c) => {
+      let big = '';
+      if (/us open|australian open|roland|french open|wimbledon/i.test(c.name)) big = 'Grand Slam';
+      else if (/atp finals/i.test(c.name)) big = 'Finales';
+      else if (/masters|indian wells|miami open|monte.carlo|madrid open|italian open|internazionali|canadian open|national bank open|cincinnati/i.test(c.name)) big = 'Masters / 1000';
+      return { ...c, big };
+    });
+}
+
+async function tenis() {
+  const rk = await getJSON(`${ESPN}/tennis/atp/rankings`);
+  const ranking = (rk.rankings?.[0]?.ranks || []).slice(0, 20).map((r) => ({
+    rank: r.current,
+    prev: r.previous,
+    name: r.athlete?.displayName || r.athlete?.fullName || '',
+    pts: r.points,
+  }));
+  const top = new Set(ranking.map((r) => norm(r.name)));
+
+  const tournaments = new Map();
+  let calendarMen = [];
+  const today = new Date();
+  for (let i = -1; i <= 7; i++) {
+    let sb;
+    try {
+      sb = await getJSON(`${ESPN}/tennis/atp/scoreboard?dates=${ymd(addDays(today, i))}`);
+    } catch {
+      continue;
+    }
+    if (!calendarMen.length) calendarMen = parseCalendar(sb.leagues?.[0]?.calendar);
+    for (const ev of sb.events || []) {
+      let t = tournaments.get(ev.id);
+      if (!t) {
+        t = { id: ev.id, name: ev.name || ev.shortName, start: ev.date, end: ev.endDate, matches: new Map() };
+        tournaments.set(ev.id, t);
+      }
+      for (const g of ev.groupings || []) {
+        const slug = `${g.grouping?.slug || ''} ${g.grouping?.displayName || ''}`;
+        if (!/singles/i.test(slug) || /women|doubles/i.test(slug)) continue;
+        for (const c of g.competitions || []) {
+          const cs = c.competitors || [];
+          if (cs.length < 2) continue;
+          const names = cs.map((x) => x.athlete?.displayName || x.athlete?.fullName || '');
+          if (!names.some((n) => top.has(norm(n)))) continue;
+          const sets = (cs[0].linescores || []).map((l, k) => `${l.value}-${cs[1].linescores?.[k]?.value ?? ''}`);
+          t.matches.set(c.id, {
+            id: c.id,
+            date: c.date || c.startDate,
+            round: c.round?.displayName || '',
+            state: c.status?.type?.state || 'pre',
+            detail: c.status?.type?.shortDetail || '',
+            score: sets.join(' '),
+            p: cs.map((x, k) => ({ name: names[k], winner: !!x.winner })),
+          });
+        }
+      }
+    }
+  }
+
+  let calendarWomen = [];
+  try {
+    const w = await getJSON(`${ESPN}/tennis/wta/scoreboard`);
+    calendarWomen = parseCalendar(w.leagues?.[0]?.calendar);
+  } catch {}
+
+  const list = [...tournaments.values()]
+    .map((t) => ({
+      id: t.id,
+      name: t.name,
+      start: t.start,
+      end: t.end,
+      matches: [...t.matches.values()].sort((a, b) => new Date(a.date) - new Date(b.date)),
+    }))
+    .filter((t) => t.matches.length);
+
+  return { ranking, tournaments: list, calendarMen, calendarWomen };
+}
+
+/* ---------------- NFL ---------------- */
+async function nfl() {
+  const cur = await getJSON(`${ESPN}/football/nfl/scoreboard`);
+  const type = cur.season?.type;
+  const week = cur.week?.number || 1;
+  const weeks = [];
+  const pull = async (w, t) => {
+    try {
+      const d = await getJSON(`${ESPN}/football/nfl/scoreboard?seasontype=${t}&week=${w}`);
+      const games = (d.events || []).map(parseGame);
+      if (games.length) weeks.push({ week: w, type: t, label: t === 3 ? `Playoffs ${w}` : `Semana ${w}`, games });
+    } catch {}
+  };
+  if (type === 2) {
+    for (let w = Math.max(1, week - 1); w <= NFL_WEEKS; w++) await pull(w, 2);
+  } else if (type === 3) {
+    await pull(week, 3);
+  } else {
+    for (let w = 1; w <= NFL_WEEKS; w++) await pull(w, 2);
+  }
+
+  const standings = { AFC: [], NFC: [] };
+  try {
+    const st = await getJSON(`${ESPN2}/football/nfl/standings`);
+    for (const ch of st.children || []) {
+      const key = /afc|american/i.test(`${ch.name} ${ch.abbreviation}`) ? 'AFC' : 'NFC';
+      standings[key] = (ch.standings?.entries || [])
+        .map((e) => ({
+          team: e.team?.displayName || '',
+          abbr: e.team?.abbreviation || '',
+          w: stat(e, 'wins') ?? 0,
+          l: stat(e, 'losses') ?? 0,
+          t: stat(e, 'ties') ?? 0,
+          pct: stat(e, 'winPercent') ?? 0,
+        }))
+        .sort((a, b) => b.pct - a.pct || b.w - a.w || a.l - b.l);
+    }
+  } catch {}
+  return { weeks, standings };
+}
+
+/* ---------------- F1 ---------------- */
+const iso = (d, t) => (d ? `${d}T${t || '12:00:00Z'}` : null);
 
 async function f1() {
-  const year = now.getUTCFullYear();
-  let races = [];
-  for (const y of [year, year + 1]) {
-    try {
-      const s = await getJson(`${J}/${y}.json?limit=100`);
-      races = races.concat(s.MRData?.RaceTable?.Races || []);
-    } catch (e) { console.warn("  calendario F1 falló", y, e.message); }
-  }
-  const next = races
-    .filter(r => new Date(r.date + "T23:59:59Z") >= now && new Date(r.date) <= horizonDate)
-    .map(r => ({
-      gp: r.raceName,
-      date: r.time ? `${r.date}T${r.time}` : r.date,
-      place: `${r.Circuit?.Location?.locality || ""}, ${r.Circuit?.Location?.country || ""}`,
-      mx: /mexico/i.test(r.Circuit?.Location?.country || "")
-    }));
-
-  const ds = await getJson(`${J}/current/driverStandings.json`);
-  const list = ds.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [];
-  if (!list.length) throw new Error("sin standings F1");
-  const all = list.map(d => ({
-    pos: Number(d.position),
-    name: `${d.Driver.givenName} ${d.Driver.familyName}`,
-    team: d.Constructors?.[0]?.name || "",
-    points: Number(d.points),
-    flag: FLAGS[d.Driver.nationality] || ""
-  }));
-  const checo = all.find(d => /P[eé]rez/i.test(d.name)) || null;
-
-  const cs = await getJson(`${J}/current/constructorStandings.json`);
-  const teams = (cs.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [])
-    .map(t => ({ name: t.Constructor.name, points: Number(t.points) }));
+  const [sch, std] = await Promise.all([
+    getJSON(`${JOLPICA}/current.json`),
+    getJSON(`${JOLPICA}/current/driverStandings.json`),
+  ]);
+  const now = Date.now();
+  const all = sch.MRData?.RaceTable?.Races || [];
+  const races = all
+    .map((r) => {
+      const sessions = [];
+      if (r.Qualifying) sessions.push({ name: 'Clasificación', at: iso(r.Qualifying.date, r.Qualifying.time) });
+      if (r.Sprint) sessions.push({ name: 'Sprint', at: iso(r.Sprint.date, r.Sprint.time) });
+      return {
+        round: Number(r.round),
+        name: r.raceName,
+        circuit: r.Circuit?.circuitName || '',
+        place: [r.Circuit?.Location?.locality, r.Circuit?.Location?.country].filter(Boolean).join(', '),
+        country: r.Circuit?.Location?.country || '',
+        race: iso(r.date, r.time),
+        sessions,
+      };
+    })
+    .filter((r) => r.race && new Date(r.race).getTime() + 3 * 36e5 >= now);
 
   let last = null;
   try {
-    const l = await getJson(`${J}/current/last/results.json`);
-    const race = l.MRData?.RaceTable?.Races?.[0];
-    const nm = r => r ? `${r.Driver.givenName} ${r.Driver.familyName} (${r.Constructor.name})` : "";
-    if (race) last = { gp: race.raceName, date: race.date, win: nm(race.Results?.[0]), second: nm(race.Results?.[1]) };
-  } catch (e) { console.warn("  última carrera falló", e.message); }
+    const l = await getJSON(`${JOLPICA}/current/last/results.json`);
+    const r = l.MRData?.RaceTable?.Races?.[0];
+    if (r)
+      last = {
+        name: r.raceName,
+        date: r.date,
+        podium: (r.Results || []).slice(0, 3).map((x) => ({
+          pos: x.position,
+          name: `${x.Driver.givenName} ${x.Driver.familyName}`,
+          team: x.Constructor?.name || '',
+        })),
+        results: (r.Results || []).map((x) => ({
+          pos: x.position,
+          name: `${x.Driver.givenName} ${x.Driver.familyName}`,
+          team: x.Constructor?.name || '',
+          time: x.Time?.time || x.status || '',
+          points: Number(x.points),
+        })),
+      };
+  } catch {}
 
-  return { last, next, drivers: all.slice(0, 10), teams: teams.slice(0, 10), checo };
+  const drivers = (std.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || []).map((d) => ({
+    pos: Number(d.position),
+    name: `${d.Driver.givenName} ${d.Driver.familyName}`,
+    team: d.Constructors?.[0]?.name || '',
+    nationality: d.Driver.nationality || '',
+    points: Number(d.points),
+    wins: Number(d.wins),
+  }));
+  return { last, races, drivers };
 }
 
-/* ---------- main ---------- */
-let prev = {};
-try { prev = JSON.parse(await readFile(OUT, "utf8")); } catch {}
-const data = { ...prev };
-
-const jobs = { tennis: () => tennis(), nfl: () => nfl(), f1: () => f1(), futbol: () => futbol(prev.futbol) };
-for (const [k, fn] of Object.entries(jobs)) {
-  try { data[k] = await fn(); console.log("ok", k); }
-  catch (e) { console.error("falló", k, e.message, "(se conservan los datos anteriores)"); }
+/* ---------------- FÚTBOL ---------------- */
+async function liga(l) {
+  const today = new Date();
+  const range = `${ymd(addDays(today, -3))}-${ymd(addDays(today, 14))}`;
+  let matches = [];
+  try {
+    const sb = await getJSON(`${ESPN}/soccer/${l.id}/scoreboard?dates=${range}&limit=300`);
+    matches = (sb.events || []).map(parseGame).sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch {}
+  let table = [];
+  try {
+    const st = await getJSON(`${ESPN2}/soccer/${l.id}/standings`);
+    const child = (st.children || []).find((c) => c.standings?.entries?.length);
+    const entries = child?.standings?.entries || [];
+    table = entries.map((e) => ({
+      team: e.team?.displayName || '',
+      rank: stat(e, 'rank'),
+      pj: stat(e, 'gamesPlayed') ?? 0,
+      g: stat(e, 'wins') ?? 0,
+      e: stat(e, 'ties') ?? 0,
+      p: stat(e, 'losses') ?? 0,
+      dg: stat(e, 'pointDifferential') ?? 0,
+      pts: stat(e, 'points') ?? 0,
+    }));
+    table.sort((a, b) =>
+      a.rank != null && b.rank != null ? a.rank - b.rank : b.pts - a.pts || b.dg - a.dg
+    );
+  } catch {}
+  if (!matches.length && !table.length) throw new Error(`sin datos ${l.id}`);
+  return { id: l.id, name: l.name, cc: l.cc, matches, table };
 }
-data.horizon = HORIZON;
 
-const strip = o => JSON.stringify({ ...o, generatedAt: 0 });
-if (strip(data) === strip(prev)) {
-  console.log("Sin cambios, no se escribe data.json");
-} else {
-  data.generatedAt = new Date().toISOString();
-  await writeFile(OUT, JSON.stringify(data));
-  console.log("data.json actualizado");
+async function futbol() {
+  const res = await Promise.allSettled(LIGAS.map(liga));
+  const ligas = res.map((r, i) => {
+    if (r.status === 'fulfilled') return r.value;
+    console.warn('Liga falló:', LIGAS[i].name, r.reason?.message);
+    return { ...LIGAS[i], matches: [], table: [] };
+  });
+  if (ligas.every((l) => !l.matches.length && !l.table.length)) throw new Error('fútbol sin datos');
+  return { ligas };
 }
+
+/* ---------------- MAIN ---------------- */
+let old = {};
+try {
+  old = JSON.parse(await readFile(OUT, 'utf8'));
+} catch {}
+if (old.v !== 2) old = {};
+
+const keys = ['tenis', 'nfl', 'f1', 'futbol'];
+const res = await Promise.allSettled([tenis(), nfl(), f1(), futbol()]);
+const out = { v: 2, updated: new Date().toISOString() };
+let fallos = 0;
+res.forEach((r, i) => {
+  if (r.status === 'fulfilled') out[keys[i]] = r.value;
+  else {
+    fallos++;
+    console.warn(`Falló ${keys[i]}:`, r.reason?.message || r.reason);
+    if (old[keys[i]]) out[keys[i]] = old[keys[i]];
+  }
+});
+if (fallos === keys.length) {
+  console.error('Fallaron todas las secciones');
+  process.exit(1);
+}
+await writeFile(OUT, JSON.stringify(out));
+console.log('data.json listo. Secciones con error:', fallos);
