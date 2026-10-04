@@ -139,11 +139,20 @@ const dKey = iso => new Intl.DateTimeFormat("en-CA",{timeZone:TZ}).format(new Da
 const fShort = iso => cap(new Intl.DateTimeFormat("es-MX",{timeZone:TZ,day:"numeric",month:"short"}).format(new Date(iso)));
 const fRange = (a,b) => `${fShort(a)} a ${fShort(b)}`;
 const fYmd = ymd => cap(new Intl.DateTimeFormat("es-MX",{timeZone:"UTC",weekday:"short",day:"numeric",month:"long",year:"numeric"}).format(new Date(ymd+"T12:00:00Z")));
-const fRaceDateTime = iso => {
-  if (iso.length > 10) {
-    return cap(new Intl.DateTimeFormat("es-MX",{timeZone:TZ,weekday:"short",day:"numeric",month:"long",hour:"numeric",minute:"2-digit",hour12:true}).format(new Date(iso))).replace(/\s/g," ") + " (hora Hermosillo)";
-  }
-  return fYmd(iso);
+const RACE_CITIES = [
+  ["Hermosillo", TZ], ["CDMX", "America/Mexico_City"], ["Madrid", "Europe/Madrid"],
+  ["Buenos Aires", "America/Argentina/Buenos_Aires"], ["Nueva York", "America/New_York"], ["Londres", "Europe/London"]
+];
+const fRaceDay = iso => {
+  const hasTime = iso.length > 10;
+  const d = hasTime ? new Date(iso) : new Date(iso+"T12:00:00Z");
+  const tz = hasTime ? TZ : "UTC";
+  return cap(new Intl.DateTimeFormat("es-MX",{timeZone:tz,weekday:"short",day:"numeric",month:"long"}).format(d));
+};
+const fRaceCities = iso => {
+  if (iso.length <= 10) return "";
+  const d = new Date(iso);
+  return RACE_CITIES.map(([city,tz]) => `${city} ${new Intl.DateTimeFormat("es-MX",{timeZone:tz,hour:"numeric",minute:"2-digit",hour12:true}).format(d).replace(/\s/g," ")}`).join(" · ");
 };
 const stampTxt = iso => "Datos de " + new Intl.DateTimeFormat("es-MX",{timeZone:TZ,day:"numeric",month:"short",hour:"numeric",minute:"2-digit",hour12:true}).format(new Date(iso)).replace(/\s/g," ");
 const todayTxt = () => cap(new Intl.DateTimeFormat("es-MX",{timeZone:TZ,weekday:"long",day:"numeric",month:"long"}).format(new Date()));
@@ -191,7 +200,8 @@ function table(rows){
   return `<div class="tb h"><span></span><span>Equipo</span><span class="c">PJ</span><span class="c">Pts</span></div>` +
     rows.map((r,i)=>`<div class="tb ${i<4?"top":""}"><span class="r">${i+1}</span><span class="n">${esc(r.team)}</span><span class="c">${esc(r.pj)}</span><span class="p">${esc(r.pts)}</span></div>`).join("");
 }
-function evList(list, key, limit){
+const surnameOf = n => n.trim().split(" ").pop().toLowerCase();
+function evList(list, key, limit, highlight){
   if(!list || !list.length) return `<div class="empty">Sin torneos confirmados por ahora.</div>`;
   const n = S.show[key] || limit;
   const big = /australian open|roland garros|french open|wimbledon|us open/i;
@@ -201,8 +211,9 @@ function evList(list, key, limit){
     const major = big.test(e.name), master = m1000.test(e.name);
     const tag = major ? "Grand Slam" : master ? "Masters / 1000" : "";
     const live = new Date(e.start) <= today && today <= new Date(new Date(e.end).getTime() + 86400000);
-    const matches = (e.topMatches && e.topMatches.length)
-      ? `<div class="note">` + e.topMatches.map(m => `${esc(m.p1)} vs ${esc(m.p2)}${m.score?` — ${esc(m.score)}`:""}${m.status?` · ${esc(m.status)}`:""}`).join("<br>") + `</div>`
+    const shown = (e.topMatches || []).filter(m => highlight.has(surnameOf(m.p1)) || highlight.has(surnameOf(m.p2)));
+    const matches = shown.length
+      ? `<div class="note">` + shown.map(m => `${esc(m.p1)} vs ${esc(m.p2)}${m.score?` — ${esc(m.score)}`:""}${m.status?` · ${esc(m.status)}`:""}`).join("<br>") + `</div>`
       : "";
     return `<div class="ev ${(major||master)?"hot":""}">
       ${live ? `<div class="live"><i></i>En curso</div>` : `<div class="d">${esc(fRange(e.start,e.end))}</div>`}
@@ -218,6 +229,7 @@ function viewTenis(){
   const rows = T.top.filter(p => f==="todos" ? true : f==="fav" ? S.favs.has(p.name) : f==="t10" ? p.rank<=10 : p.rank>10);
   const chips = [["todos","Todos"],["fav","Mis estrellas"],["t10","Top 10"],["t20","11 a 20"]]
     .map(([k,l])=>`<button class="chip" data-act="filter" data-v="${k}" aria-pressed="${f===k}">${l}</button>`).join("");
+  const highlight = new Set([...T.top.slice(0,5).map(p=>p.name), ...S.favs].map(surnameOf));
   const watch = rows.length ? rows.map(p=>{
     const mv = p.prev - p.rank;
     const arrow = mv>0 ? `<span style="color:var(--accent)"> ▲${mv}</span>` : mv<0 ? `<span style="color:var(--bad)"> ▼${-mv}</span>` : "";
@@ -226,8 +238,8 @@ function viewTenis(){
       <button class="star" data-act="star" data-v="${esc(p.name)}" aria-pressed="${S.favs.has(p.name)}" aria-label="Seguir a ${esc(p.name)}">${STAR}</button></div>`;
   }).join("") : `<div class="empty">${f==="fav"?"Todavía no marcas a nadie. Toca la estrella junto a un jugador.":"Nadie en este filtro."}</div>`;
   return header("Tenis", todayTxt()) + `
-    <div class="band"><h2>Torneos, hombres (ATP)</h2><p class="hint">Hasta el US Open ${new Date(D.horizon).getUTCFullYear()}.</p>${evList(T.atp,"atp",8)}</div>
-    <div class="band"><h2>Torneos, mujeres (WTA)</h2>${evList(T.wta,"wta",8)}</div>
+    <div class="band"><h2>Torneos, hombres (ATP)</h2><p class="hint">Hasta el US Open ${new Date(D.horizon).getUTCFullYear()}. Se muestran partidos de tu Top 5 y de tus estrellas.</p>${evList(T.atp,"atp",8,highlight)}</div>
+    <div class="band"><h2>Torneos, mujeres (WTA)</h2>${evList(T.wta,"wta",8,highlight)}</div>
     <div class="band"><h2>Mi watchlist: Top 20 ATP</h2>
       <p class="hint">Toca la estrella para marcar a quién sigues. ▲ y ▼ comparan con el ranking anterior.</p>
       <div class="chips inband" role="group" aria-label="Filtros">${chips}</div>
@@ -254,7 +266,7 @@ function viewF1(){
       <p style="margin-top:8px">Ganó <b>${esc(F.last.win)}</b>. Segundo, ${esc(F.last.second)}.</p></div></div>` : "";
   const n = S.show["f1-next"] || 6;
   const next = (F.next||[]).length
-    ? F.next.slice(0,n).map(r=>`<div class="row"><div class="teams">${r.mx?"🇲🇽 ":""}${esc(r.gp)}</div><div class="when">${esc(fRaceDateTime(r.date))}${r.place?`, ${esc(r.place)}`:""}</div></div>`).join("") + moreBtn("f1-next", F.next.length, n)
+    ? F.next.slice(0,n).map(r=>`<div class="row"><div class="teams">${r.mx?"🇲🇽 ":""}${esc(r.gp)}</div><div class="when">${esc(fRaceDay(r.date))}${r.place?`, ${esc(r.place)}`:""}</div>${r.date.length>10?`<div class="when">${esc(fRaceCities(r.date))}</div>`:""}</div>`).join("") + moreBtn("f1-next", F.next.length, n)
     : `<div class="empty">No hay carreras programadas por ahora.</div>`;
   const drivers = (F.drivers||[]).map((d,i)=>`<div class="tb tb3 ${i<3?"top":""}"><span class="r">${d.pos}</span><span class="n">${d.flag||""} ${esc(d.name)}<span style="display:block;font-size:12.5px;color:var(--mute);font-weight:400">${esc(d.team)}</span></span><span class="p">${d.points}</span></div>`).join("");
   const mex = F.checo ? `<div class="mex">🇲🇽 <b>${esc(F.checo.name)}</b>, ${esc(F.checo.team)}: ${F.checo.points} puntos (lugar ${F.checo.pos})</div>` : "";
