@@ -41,6 +41,19 @@ function monthChunks(from, to) {
   return out;
 }
 
+// Para deportes de equipo (NFL, fútbol): ESPN no soporta rangos de un mes
+// en el parámetro "dates", así que se parte en bloques de 7 días.
+function weekChunks(from, to) {
+  const out = [];
+  let s = new Date(from);
+  while (s <= to) {
+    const e = new Date(s.getTime() + 6 * 24 * 60 * 60 * 1000);
+    out.push([ymd(s), ymd(e < to ? e : to)]);
+    s = new Date(s.getTime() + 7 * 24 * 60 * 60 * 1000);
+  }
+  return out;
+}
+
 function parseEvents(json) {
   return (json.events || []).map(ev => {
     const c = ev.competitions?.[0];
@@ -60,13 +73,14 @@ function parseEvents(json) {
 }
 
 // Un día atrás (para que los resultados se queden 24h y luego se quiten solos)
-// + todo hasta HORIZON (próximos)
+// + hasta "toDate" (puede ser el horizonte completo o una ventana más corta)
 const DAY_MS = 24 * 60 * 60 * 1000;
-async function collect(path) {
+async function collect(path, toDate) {
   const from = new Date(now.getTime() - DAY_MS);
+  const to = toDate || new Date(HORIZON + "T00:00:00Z");
   const seen = new Map();
   let ok = 0;
-  for (const [s, e] of monthChunks(from, new Date(HORIZON + "T00:00:00Z"))) {
+  for (const [s, e] of weekChunks(from, to)) {
     try {
       const j = await getJson(`${ESPN}/${path}/scoreboard?dates=${s}-${e}&limit=1000`);
       parseEvents(j).forEach(m => seen.set(m.date + m.h + m.a, m));
@@ -74,7 +88,7 @@ async function collect(path) {
     } catch (err) {
       console.warn("  chunk falló", path, s, err.message);
     }
-    await sleep(150);
+    await sleep(400);
   }
   if (!ok) throw new Error("sin datos para " + path);
   const all = [...seen.values()].sort((x, y) => new Date(x.date) - new Date(y.date));
@@ -85,22 +99,23 @@ async function collect(path) {
     results: all.filter(m => m.state === "post" && new Date(m.date).getTime() >= from.getTime()).reverse()
   };
 }
-
 /* ---------- NFL ---------- */
 async function nfl() {
   const games = await collect("football/nfl");
-  const j = await getJson(`${ESPN2}/football/nfl/standings?type=0&level=1`);
-  const conf = { AFC: [], NFC: [] };
-  for (const c of j.children || []) {
-    const key = /AFC|american/i.test((c.abbreviation || "") + (c.name || "")) ? "AFC" : "NFC";
-    conf[key] = (c.standings?.entries || []).map(e => ({
-      team: e.team.shortDisplayName || e.team.displayName,
-      w: stat(e, "wins") ?? 0,
-      l: stat(e, "losses") ?? 0,
-      t: stat(e, "ties") ?? 0,
-      seed: stat(e, "playoffSeed") ?? 99
-    })).sort((a, b) => a.seed - b.seed || b.w - a.w).slice(0, 7);
-  }
+  let conf = { AFC: [], NFC: [] };
+  try {
+    const j = await getJson(`${ESPN2}/football/nfl/standings?type=0&level=1`);
+    for (const c of j.children || []) {
+      const key = /AFC|american/i.test((c.abbreviation || "") + (c.name || "")) ? "AFC" : "NFC";
+      conf[key] = (c.standings?.entries || []).map(e => ({
+        team: e.team.shortDisplayName || e.team.displayName,
+        w: stat(e, "wins") ?? 0,
+        l: stat(e, "losses") ?? 0,
+        t: stat(e, "ties") ?? 0,
+        seed: stat(e, "playoffSeed") ?? 99
+      })).sort((a, b) => a.seed - b.seed || b.w - a.w).slice(0, 7);
+    }
+  } catch (e) { console.warn("  standings NFL falló", e.message); }
   return { ...games, conf };
 }
 
@@ -194,7 +209,7 @@ async function tennis() {
     name: r.athlete?.displayName || r.athlete?.shortName,
     points: r.points
   }));
-  const topNames = top.slice(0, 5).map(p => p.name);
+  const topNames = top.map(p => p.name);
   let atp = [], wta = [];
   try { atp = await tennisTournaments("atp", topNames); } catch (e) { console.warn("  torneos ATP falló", e.message); }
   try { wta = await tennisTournaments("wta", topNames); } catch (e) { console.warn("  torneos WTA falló", e.message); }
