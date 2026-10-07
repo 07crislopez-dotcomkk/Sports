@@ -43,6 +43,10 @@ main{max-width:860px;margin:0 auto;padding:18px 16px 60px}
 .row .s{color:var(--mut);font-size:14px}
 .star{width:46px;height:46px;border-radius:50%;border:2px solid var(--mut);background:transparent;color:var(--mut);font-size:22px;cursor:pointer;flex:0 0 46px}
 .star.on{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.rk{color:var(--mut);font-size:13px;font-weight:400}
+.tt{font-size:30px}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 12px}
+.sum span{background:rgba(255,255,255,.1);border-radius:999px;padding:4px 14px;font-size:15px}
 .up{color:#7dff9b;font-size:13px}.dn{color:#ff8f8f;font-size:13px}
 .day{font:700 14px 'Barlow',sans-serif;color:var(--accent);margin:14px 0 2px}
 .tn{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
@@ -108,10 +112,10 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const todayKey=()=>dk(new Date().toISOString());
 
 function favSet(){
-  try{const s=JSON.parse(localStorage.getItem('dh_stars'));if(Array.isArray(s))return new Set(s)}catch{}
+  try{const s=JSON.parse(localStorage.getItem('dh_stars2'));if(Array.isArray(s))return new Set(s)}catch{}
   return new Set((D?.tenis?.ranking||[]).slice(0,5).map(r=>norm(r.name)));
 }
-function toggleStar(n){const s=favSet();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_stars',JSON.stringify([...s]))}catch{}render()}
+function toggleStar(n){const s=favSet();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_stars2',JSON.stringify([...s]))}catch{}render()}
 
 function header(title){
   const d=cap(new Date().toLocaleDateString('es-MX',{timeZone:TZ,weekday:'long',day:'numeric',month:'long'}));
@@ -125,33 +129,55 @@ function moreBtn(key,total,shown,label='Ver más'){
 }
 
 /* ---------- TENIS ---------- */
+function dayLabel(iso){
+  const k=dk(iso),t=todayKey(),tm=dk(new Date(Date.now()+864e5).toISOString()),y=dk(new Date(Date.now()-864e5).toISOString());
+  return k===t?'Hoy':k===tm?'Mañana':k===y?'Ayer':cap(df(iso));
+}
 function rTenis(){
   const t=D?.tenis||{},rk=t.ranking||[],fav=favSet();
+  const rankOf={};rk.forEach(r=>{rankOf[norm(r.name)]=r.rank});
+  const keep=p=>{const n=norm(p.name),r=rankOf[n];
+    if(ui.mode==='all')return r!=null;
+    if(ui.mode==='top3')return r!=null&&r<=3;
+    if(ui.mode==='top5')return r!=null&&r<=5;
+    return fav.has(n)};
+  const watch=m=>m.p.some(keep);
+  const nameHtml=(p,m)=>{const r=rankOf[norm(p.name)],w=m.state==='post'&&p.winner;
+    return `<span class="${w?'w':''}">${keep(p)?'<b>'+esc(p.name)+'</b>':esc(p.name)}${r?` <span class="rk">#${r}</span>`:''}${w?' ✓':''}</span>`};
+  const row=m=>`<div class="m"><span class="t">${m.state==='pre'?tf(m.date):m.state==='in'?'<span class="live" style="margin:0">En vivo</span>':'Final'}</span><span class="x">${m.p.map(p=>nameHtml(p,m)).join(' vs ')}${m.round?`<span class="i">${esc(m.round)}</span>`:''}</span><span class="r">${m.state==='pre'?'':esc(m.score)}</span></div>`;
+  const grouped=ms=>{let last='',h='';ms.forEach(m=>{const k=dk(m.date);if(k!==last){h+=`<div class="day">${dayLabel(m.date)}</div>`;last=k}h+=row(m)});return h};
+
+  const tns=(t.tournaments||[]).map(tn=>{
+    const ms=(tn.matches||[]).filter(watch);
+    return {...tn,live:ms.filter(m=>m.state==='in'),next:ms.filter(m=>m.state==='pre'),done:ms.filter(m=>m.state==='post').reverse()};
+  }).filter(tn=>tn.live.length||tn.next.length||tn.done.length);
+  const nLive=tns.reduce((a,x)=>a+x.live.length,0),nNext=tns.reduce((a,x)=>a+x.next.length,0),nDone=tns.reduce((a,x)=>a+x.done.length,0);
+  const desc={fav:'Partidos de tus estrellas ★',top3:'Partidos del Top 3',top5:'Partidos del Top 5',all:'Partidos de todo el Top 20'}[ui.mode];
+
   let h=header('Tenis');
-  const watch=m=>m.p.some(p=>fav.has(norm(p.name)));
-  const tns=(t.tournaments||[]).map(tn=>({...tn,ms:(tn.matches||[]).filter(m=>ui.mode==='all'||watch(m))})).filter(tn=>tn.ms.length);
-  h+=`<section class="card"><h2>Torneos y partidos</h2><div class="sub">Partidos de tus estrellas${ui.mode==='all'?' y de todo el Top 20':''}. Horario de Hermosillo.</div>
-  <div class="chips"><button class="chip" data-a="mode" data-v="fav" aria-pressed="${ui.mode==='fav'}">Mis estrellas</button><button class="chip" data-a="mode" data-v="all" aria-pressed="${ui.mode==='all'}">Todo el Top 20</button></div>`;
-  if(!tns.length)h+=`<div class="empty">${ui.mode==='fav'?'Tus estrellas no tienen partidos programados por ahora. Prueba «Todo el Top 20».':'No hay partidos del Top 20 por ahora.'}</div>`;
+  h+=`<section class="card"><h2>¿De quién quieres ver partidos?</h2><div class="sub">${desc}. Los torneos nuevos aparecen solos. Horario de Hermosillo.</div>
+  <div class="chips">${[['fav','★ Mis estrellas'],['top3','Top 3'],['top5','Top 5'],['all','Top 20']].map(([v,l])=>`<button class="chip" data-a="mode" data-v="${v}" aria-pressed="${ui.mode===v}">${l}</button>`).join('')}</div>
+  <div class="sum"><span>🔴 En vivo: <b>${nLive}</b></span><span>⏳ Por jugar: <b>${nNext}</b></span><span>✅ Terminados: <b>${nDone}</b></span></div></section>`;
+
+  if(!tns.length)h+=`<section class="card"><div class="empty">${ui.mode==='fav'?'Tus estrellas no tienen partidos por ahora. Prueba «Top 5» o «Top 20», o marca más estrellas abajo.':'No hay partidos de este grupo por ahora.'}</div></section>`;
   tns.forEach((tn,i)=>{
-    const live=tn.ms.some(m=>m.state==='in');
-    const key='tn'+i,lim=ui.more[key]?999:12,shown=tn.ms.slice(0,lim);
-    h+=`<div class="tn"><h3>${esc(tn.name)}${live?'<span class="live">En vivo</span>':''}</h3>`;
-    let last='';
-    shown.forEach(m=>{
-      const k=dk(m.date);
-      if(k!==last){h+=`<div class="day">${cap(df(m.date))}</div>`;last=k}
-      const names=m.p.map(p=>{const f=fav.has(norm(p.name));const w=m.state==='post'&&p.winner;return `<span class="${w?'w':''}">${f?'<b>'+esc(p.name)+'</b>':esc(p.name)}${w?' ✓':''}</span>`}).join(' vs ');
-      const right=m.state==='post'?esc(m.score):m.state==='in'?'En vivo':'';
-      h+=`<div class="m"><span class="t">${m.state==='pre'?tf(m.date):esc(m.state==='post'?'Final':'Ahora')}</span><span class="x">${names}${m.round?`<span class="i">${esc(m.round)}</span>`:''}</span><span class="r">${right}</span></div>`;
-    });
-    h+=moreBtn(key,tn.ms.length,12,'Ver más partidos')+'</div>';
+    h+=`<section class="card"><h2 class="tt">${esc(tn.name)}${tn.live.length?'<span class="live">En vivo</span>':''}</h2>`;
+    if(tn.start)h+=`<div class="sub">${esc(range(tn.start,tn.end))}</div>`;
+    if(tn.live.length)h+=`<div class="day">En vivo ahora</div>`+tn.live.map(row).join('');
+    if(tn.next.length){
+      const lim=ui.more['nx'+i]?999:8;
+      h+=`<div class="day" style="font-size:16px;margin-top:18px">Próximos partidos</div>`+grouped(tn.next.slice(0,lim))+moreBtn('nx'+i,tn.next.length,8,'Ver más próximos');
+    }else if(!tn.live.length)h+=`<div class="empty">No hay más partidos por jugar de este grupo en este torneo.</div>`;
+    if(tn.done.length){
+      h+=`<button class="chip more" data-a="more" data-k="dn${i}">${ui.more['dn'+i]?'Ocultar resultados':`Ver resultados (${tn.done.length})`}</button>`;
+      if(ui.more['dn'+i])h+=`<div class="day" style="font-size:16px;margin-top:14px">Resultados</div>`+grouped(tn.done);
+    }
+    h+='</section>';
   });
-  h+='</section>';
 
   const fl=r=>ui.rk==='all'||(ui.rk==='stars'&&fav.has(norm(r.name)))||(ui.rk==='top10'&&r.rank<=10)||(ui.rk==='11'&&r.rank>10);
   const list=rk.filter(fl);
-  h+=`<section class="card"><h2>Mi watchlist: Top 20 ATP</h2><div class="sub">Toca la estrella para marcar a quién sigues. ▲ y ▼ comparan con el ranking anterior.</div>
+  h+=`<section class="card"><h2>Top 20 ATP</h2><div class="sub">Toca la estrella para elegir a quién sigues. ▲ y ▼ comparan con el ranking anterior.</div>
   <div class="chips">${[['all','Todos'],['stars','Mis estrellas'],['top10','Top 10'],['11','11 a 20']].map(([v,l])=>`<button class="chip" data-a="rk" data-v="${v}" aria-pressed="${ui.rk===v}">${l}</button>`).join('')}</div>
   <div class="small" style="margin-bottom:6px">Sigues a <b style="color:var(--accent)">${rk.filter(r=>fav.has(norm(r.name))).length}</b> de ${rk.length}. Mostrando ${list.length}.</div>`;
   if(!rk.length)h+='<div class="empty">Sin ranking por ahora.</div>';
@@ -162,12 +188,13 @@ function rTenis(){
   });
   h+='</section>';
 
+  const nowMs=Date.now();
   const cal=(title,arr,key)=>{
     if(!arr?.length)return '';
     const lim=ui.more[key]?999:8;
-    return `<section class="card"><h2>${title}</h2><div class="sub">Hasta el US Open 2027.</div>`+arr.slice(0,lim).map(c=>`<div class="cal"><div class="d">${range(c.start,c.end)}</div><div><b>${esc(c.name)}</b>${c.big?`<span class="badge">${esc(c.big)}</span>`:''}</div></div>`).join('')+moreBtn(key,arr.length,8)+'</section>';
+    return `<section class="card"><h2>${title}</h2><div class="sub">Se actualiza solo. Hasta el US Open 2027.</div>`+arr.slice(0,lim).map(c=>`<div class="cal"><div class="d">${range(c.start,c.end)}</div><div><b>${esc(c.name)}</b>${new Date(c.start).getTime()<=nowMs?'<span class="badge">En curso</span>':''}${c.big?`<span class="badge">${esc(c.big)}</span>`:''}</div></div>`).join('')+moreBtn(key,arr.length,8)+'</section>';
   };
-  h+=cal('Calendario, hombres (ATP)',t.calendarMen,'calM')+cal('Calendario, mujeres (WTA)',t.calendarWomen,'calW');
+  h+=cal('Próximos torneos, hombres (ATP)',t.calendarMen,'calM')+cal('Próximos torneos, mujeres (WTA)',t.calendarWomen,'calW');
   return h;
 }
 
