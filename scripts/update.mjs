@@ -96,7 +96,7 @@ async function tenis() {
   const tournaments = new Map();
   let calendarMen = [];
   const today = new Date();
-  for (let i = -1; i <= 7; i++) {
+  for (let i = -1; i <= 10; i++) {
     let sb;
     try {
       sb = await getJSON(`${ESPN}/tennis/atp/scoreboard?dates=${ymd(addDays(today, i))}`);
@@ -147,7 +147,9 @@ async function tenis() {
       end: t.end,
       matches: [...t.matches.values()].sort((a, b) => new Date(a.date) - new Date(b.date)),
     }))
-    .filter((t) => t.matches.length);
+    .filter((t) => t.matches.length)
+    // quita torneos que ya terminaron hace más de 2 días
+    .filter((t) => t.matches.some((m) => m.state !== 'post' || new Date(m.date).getTime() > Date.now() - 48 * 36e5));
 
   return { ranking, tournaments: list, calendarMen, calendarWomen };
 }
@@ -256,13 +258,24 @@ async function f1() {
 
 /* ---------------- FÚTBOL ---------------- */
 async function liga(l) {
+  // Un request por día (más confiable que un rango de fechas)
   const today = new Date();
-  const range = `${ymd(addDays(today, -3))}-${ymd(addDays(today, 14))}`;
-  let matches = [];
-  try {
-    const sb = await getJSON(`${ESPN}/soccer/${l.id}/scoreboard?dates=${range}&limit=300`);
-    matches = (sb.events || []).map(parseGame).sort((a, b) => new Date(a.date) - new Date(b.date));
-  } catch {}
+  const days = [];
+  for (let i = -3; i <= 10; i++) days.push(addDays(today, i));
+  const byId = new Map();
+  let fails = 0;
+  await Promise.all(
+    days.map(async (d) => {
+      try {
+        const sb = await getJSON(`${ESPN}/soccer/${l.id}/scoreboard?dates=${ymd(d)}`);
+        for (const ev of sb.events || []) byId.set(ev.id, parseGame(ev));
+      } catch (e) {
+        fails++;
+      }
+    })
+  );
+  if (fails === days.length) console.warn(`Liga ${l.name}: ningún día cargó partidos`);
+  const matches = [...byId.values()].sort((a, b) => new Date(a.date) - new Date(b.date));
   let table = [];
   try {
     const st = await getJSON(`${ESPN2}/soccer/${l.id}/standings`);
@@ -287,12 +300,15 @@ async function liga(l) {
 }
 
 async function futbol() {
-  const res = await Promise.allSettled(LIGAS.map(liga));
-  const ligas = res.map((r, i) => {
-    if (r.status === 'fulfilled') return r.value;
-    console.warn('Liga falló:', LIGAS[i].name, r.reason?.message);
-    return { ...LIGAS[i], matches: [], table: [] };
-  });
+  const ligas = [];
+  for (const l of LIGAS) {
+    try {
+      ligas.push(await liga(l));
+    } catch (e) {
+      console.warn('Liga falló:', l.name, e?.message);
+      ligas.push({ ...l, matches: [], table: [] });
+    }
+  }
   if (ligas.every((l) => !l.matches.length && !l.table.length)) throw new Error('fútbol sin datos');
   return { ligas };
 }
