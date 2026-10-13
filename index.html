@@ -6,138 +6,164 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Criko Sport">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#163a6e">
+<meta name="theme-color" content="#060919">
 <title>Criko Sport</title>
 <link id="ico" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='32' height='32' fill='%231e4e8c'/%3E%3Crect x='32' width='32' height='32' fill='%231f6b3e'/%3E%3Crect y='32' width='32' height='32' fill='%23d40f14'/%3E%3Crect x='32' y='32' width='32' height='32' fill='%23e8590c'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#1e4e8c;--card:#163a6e;--nav:#163a6e;--accent:#dce94a;--ink:#0f2547;--tx:#f4f7ff;--mut:rgba(244,247,255,.72);--line:rgba(255,255,255,.16);--edge:#07070f;
+:root{--bg:#0a0e27;--card:#151b45;--nav:#060919;--accent:#8ab4ff;--ink:#060919;--glow:#8ab4ff55;--tx:#ffffff;--mut:rgba(255,255,255,.8);--line:rgba(255,255,255,.16);--edge:#02030a;--surf:rgba(255,255,255,.08);
+--fp:'Pixelify Sans','Courier New',monospace;--fb:'Barlow','Helvetica Neue',Arial,sans-serif;
 --notch:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge);
 --notch4:0 -4px 0 0 var(--edge),0 4px 0 0 var(--edge),-4px 0 0 0 var(--edge),4px 0 0 0 var(--edge)}
-body[data-t="nfl"]{--bg:#1f6b3e;--card:#164d2d;--nav:#154a2c;--accent:#ffc52e;--ink:#10301d}
-body[data-t="f1"]{--bg:#d40f14;--card:#14161c;--nav:#14161c;--accent:#ffd23f;--ink:#14161c}
-body[data-t="futbol"]{--bg:#e8590c;--card:#12203f;--nav:#12203f;--accent:#ffe066;--ink:#12203f}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--tx);font:500 18px/1.35 'Pixelify Sans','Courier New',monospace;min-height:100vh;transition:background .25s}
-h1,h2,h3{font-family:'Pixelify Sans','Courier New',monospace;font-weight:700;margin:0;line-height:1.05;letter-spacing:.5px}
+body{margin:0;background:var(--bg);color:var(--tx);font:500 17px/1.4 var(--fb);min-height:100vh;transition:background .25s}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='white' fill-opacity='.4'%3E%3Crect x='12' y='20' width='2' height='2'/%3E%3Crect x='90' y='8' width='2' height='2'/%3E%3Crect x='140' y='60' width='3' height='3'/%3E%3Crect x='50' y='100' width='2' height='2'/%3E%3Crect x='120' y='130' width='2' height='2'/%3E%3Crect x='20' y='145' width='3' height='3'/%3E%3Crect x='75' y='55' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");animation:tw 6s steps(3) infinite}
+@keyframes tw{50%{opacity:.45}}
+h1,h2,h3{font-family:var(--fp);font-weight:700;margin:0;line-height:1.1;letter-spacing:.5px}
 .px{image-rendering:pixelated;vertical-align:middle;display:inline-block}
-.em{width:1.1em;height:1.1em;image-rendering:pixelated;vertical-align:-.18em}
-nav{position:sticky;top:0;z-index:5;background:var(--nav);display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px 16px;box-shadow:0 4px 0 var(--edge)}
-nav button{position:relative;border:0;background:rgba(0,0,0,.28);color:var(--mut);font:600 16px 'Pixelify Sans','Courier New',monospace;padding:8px 2px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.18)}
-nav button[aria-selected="true"]{background:var(--accent);color:var(--ink);box-shadow:var(--notch),inset 0 -4px 0 rgba(0,0,0,.25)}
+.em{width:1.15em;height:1.15em;image-rendering:pixelated;vertical-align:-.2em}
+nav{position:sticky;top:0;z-index:5;background:var(--nav);display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px 10px 16px;box-shadow:0 4px 0 var(--edge),0 8px 18px rgba(0,0,0,.45)}
+nav button{position:relative;border:0;background:var(--surf);color:var(--mut);font:700 14px var(--fb);padding:8px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.1)}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--ink);box-shadow:var(--notch),0 0 16px var(--glow),inset 0 -4px 0 rgba(0,0,0,.25)}
 nav button:active{transform:translateY(2px)}
-.nl{position:absolute;top:-6px;right:-4px;background:#ff3b3b;color:#fff;font:700 12px 'Pixelify Sans',monospace;padding:1px 6px;min-width:20px;text-align:center;box-shadow:var(--notch)}
+.nl{position:absolute;top:-8px;right:-4px;background:#ff3b3b;color:#fff;font:700 12px var(--fb);padding:1px 6px;min-width:20px;text-align:center;box-shadow:var(--notch)}
 main{max-width:860px;margin:0 auto;padding:22px 18px 70px}
-.top h1{font-size:50px;color:var(--accent);text-shadow:-3px 0 var(--edge),3px 0 var(--edge),0 -3px var(--edge),0 3px var(--edge),3px 3px 0 var(--edge),-3px -3px 0 var(--edge),3px -3px 0 var(--edge),-3px 3px 0 var(--edge),0 6px 0 var(--edge)}
-.top .date{color:var(--mut);margin:12px 0 14px}
-.bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-.btn{border:0;background:#0a8a1f;color:#fff;font:700 19px 'Pixelify Sans','Courier New',monospace;padding:12px 30px;cursor:pointer;margin:6px;box-shadow:0 0 0 4px #f2b705,0 0 0 8px var(--edge),inset 0 -6px 0 rgba(0,0,0,.28),inset 0 4px 0 rgba(255,255,255,.2);text-shadow:2px 2px 0 rgba(0,0,0,.45)}
+.top h1{font-size:46px;color:var(--accent);text-shadow:-3px 0 var(--edge),3px 0 var(--edge),0 -3px var(--edge),0 3px var(--edge),3px 3px 0 var(--edge),-3px -3px 0 var(--edge),3px -3px 0 var(--edge),-3px 3px 0 var(--edge),0 6px 0 var(--edge),0 0 22px var(--glow)}
+.top .date{color:var(--mut);margin:12px 0 14px;font-size:17px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.btn{border:0;background:#0a8a1f;color:#fff;font:700 19px var(--fp);padding:12px 26px;cursor:pointer;margin:6px;box-shadow:0 0 0 4px #f2b705,0 0 0 8px var(--edge),inset 0 -6px 0 rgba(0,0,0,.28),inset 0 4px 0 rgba(255,255,255,.2);text-shadow:2px 2px 0 rgba(0,0,0,.45)}
+.btn.alt{background:#2a3550;box-shadow:0 0 0 4px #8aa0c8,0 0 0 8px var(--edge),inset 0 -6px 0 rgba(0,0,0,.28),inset 0 4px 0 rgba(255,255,255,.2);font-size:17px;padding:12px 18px}
 .btn:active{transform:translateY(3px)}
-.small{color:var(--mut);font-size:15px}
+.small{color:var(--mut);font-size:16px}
 .warn{color:#ffb4b4;font-weight:600}
-.card{background:var(--card);padding:22px 18px;margin:0 4px 30px;box-shadow:var(--notch4),inset 0 4px 0 rgba(255,255,255,.1),inset 0 -4px 0 rgba(0,0,0,.25),0 11px 0 0 rgba(0,0,0,.28)}
-.card h2{font-size:30px;color:var(--accent);text-shadow:3px 3px 0 rgba(0,0,0,.5)}
-.card .sub{color:var(--mut);margin:8px 0 14px;font-size:15px}
+.card{background:var(--card);background-image:linear-gradient(var(--glow),var(--glow));background-size:100% 4px;background-repeat:no-repeat;padding:22px 18px;margin:0 4px 30px;box-shadow:var(--notch4),inset 0 -4px 0 rgba(0,0,0,.3),0 11px 0 0 rgba(0,0,0,.4),0 0 26px rgba(0,0,0,.35)}
+.card h2{font-size:28px;color:var(--accent);text-shadow:3px 3px 0 rgba(0,0,0,.55),0 0 14px var(--glow)}
+.card .sub{color:var(--mut);margin:8px 0 14px;font-size:16px}
 .chips{display:flex;gap:12px;overflow-x:auto;padding:6px 6px 14px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;border:0;background:#26364a;color:var(--tx);font:600 17px 'Pixelify Sans','Courier New',monospace;padding:8px 16px;cursor:pointer;white-space:nowrap;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.28)}
-.chip[aria-pressed="true"]{background:var(--accent);color:var(--ink);box-shadow:var(--notch),inset 0 -4px 0 rgba(0,0,0,.28)}
+.chip{flex:0 0 auto;border:0;background:var(--surf);color:var(--tx);font:700 16px var(--fb);padding:9px 16px;cursor:pointer;white-space:nowrap;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.14)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--ink);box-shadow:var(--notch),0 0 14px var(--glow),inset 0 -4px 0 rgba(0,0,0,.28)}
 .chip:active{transform:translateY(2px)}
 .empty{color:var(--mut);padding:10px 0}
 .row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:2px solid var(--line)}
 .row:first-of-type{border-top:0}
-.row .k{font:700 30px 'Pixelify Sans',monospace;color:var(--accent);width:40px;text-align:center;flex:0 0 40px}
+.row .k{font:700 28px var(--fp);color:var(--accent);width:40px;text-align:center;flex:0 0 40px}
 .row .b{flex:1;min-width:0}
-.row .n{font-weight:600}
-.row .s{color:var(--mut);font-size:14px}
-.star{width:46px;height:46px;border:0;background:rgba(0,0,0,.3);cursor:pointer;flex:0 0 46px;display:flex;align-items:center;justify-content:center;margin:4px;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.2)}
-.star.on{background:rgba(0,0,0,.5)}
+.row .n{font-weight:700}
+.row .s{color:var(--mut);font-size:15px}
+.star{width:46px;height:46px;border:0;background:var(--surf);cursor:pointer;flex:0 0 46px;display:flex;align-items:center;justify-content:center;margin:4px;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.12)}
+.star.on{background:rgba(255,255,255,.16)}
 .ts{border:0;background:none;cursor:pointer;padding:0 6px;vertical-align:middle}
-.rk{color:var(--mut);font-size:13px;font-weight:400}
-.tt{font-size:28px}
+.rk{color:var(--mut);font-size:14px;font-weight:500}
+.tt{font-size:26px}
 .sum{display:flex;gap:12px;flex-wrap:wrap;margin:4px 0 12px}
-.sum span{background:rgba(0,0,0,.3);padding:4px 12px;font-size:15px;box-shadow:var(--notch)}
-.up{color:#7dff9b;font-size:13px}.dn{color:#ff8f8f;font-size:13px}
-.day{font:700 15px 'Pixelify Sans',monospace;color:var(--accent);margin:14px 0 2px}
-.live{display:inline-block;background:#ff3b3b;color:#fff;font:700 12px 'Pixelify Sans',monospace;padding:2px 8px;margin-left:8px;vertical-align:middle;box-shadow:var(--notch)}
-.cat{display:inline-block;font:700 12px 'Pixelify Sans',monospace;padding:2px 10px;margin-left:8px;vertical-align:middle;background:rgba(0,0,0,.35);color:var(--tx);white-space:nowrap;box-shadow:var(--notch)}
-.c-GS{background:#ffd23f;color:#0f2547}
-.c-FIN{background:#ff9ad5;color:#0f2547}
-.c-1000{background:#9ad7ff;color:#0f2547}
-.c-500{background:#b8f5c0;color:#0f2547}
-.c-CH{background:repeating-linear-gradient(45deg,rgba(0,0,0,.35) 0 4px,rgba(255,255,255,.08) 4px 8px)}
+.sum span{background:var(--surf);padding:5px 12px;font-size:16px;box-shadow:var(--notch)}
+.up{color:#7dff9b;font-size:14px;font-weight:700}.dn{color:#ff9a9a;font-size:14px;font-weight:700}
+.day{font:700 16px var(--fb);color:var(--accent);margin:14px 0 2px;text-transform:uppercase;letter-spacing:.5px}
+.live{display:inline-block;background:#ff3b3b;color:#fff;font:700 13px var(--fb);padding:2px 8px;margin-left:8px;vertical-align:middle;box-shadow:var(--notch);animation:pl 1.2s steps(2) infinite}
+@keyframes pl{50%{opacity:.55}}
+.cat{display:inline-block;font:700 13px var(--fb);padding:2px 10px;margin-left:8px;vertical-align:middle;background:var(--surf);color:var(--tx);white-space:nowrap;box-shadow:var(--notch)}
+.c-GS{background:#ffd23f;color:#1a1a1a}
+.c-FIN{background:#ff9ad5;color:#1a1a1a}
+.c-1000{background:#9ad7ff;color:#1a1a1a}
+.c-500{background:#b8f5c0;color:#1a1a1a}
+.c-CH{background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 4px,rgba(255,255,255,.04) 4px 8px)}
 .lvl{margin-left:8px;vertical-align:middle;display:inline-block}
 .leg{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:2px solid var(--line)}
 .leg:first-of-type{border-top:0}
-.leg .p{margin-left:auto;color:var(--mut);font-size:14px;white-space:nowrap}
-.ao{font-size:15px;color:var(--mut);margin:6px 0 4px}
+.leg .p{margin-left:auto;color:var(--mut);font-size:15px;white-space:nowrap}
+.ao{font-size:16px;color:var(--mut);margin:6px 0 4px}
 .ao div{margin-top:4px}
 .ao b{color:var(--tx)}
-.m{display:grid;grid-template-columns:82px 1fr auto;gap:10px;padding:9px 0;border-top:2px solid var(--line);align-items:baseline}
+.m{display:grid;grid-template-columns:84px 1fr auto;gap:10px;padding:10px 0;border-top:2px solid var(--line);align-items:baseline}
 .m:first-of-type{border-top:0}
 .m.fav{box-shadow:inset 4px 0 var(--accent);padding-left:10px}
-.m .t{color:var(--mut);font-size:15px}
-.m .x{font-weight:400}
+.m .t{color:var(--mut);font-size:16px}
+.m .x{font-weight:500}
 .m .x b{font-weight:700;color:var(--tx)}
 .m .x .w{color:var(--accent)}
-.m .r{font:700 19px 'Pixelify Sans',monospace;text-align:right}
-.m .i{display:block;color:var(--mut);font-size:13px}
+.m .r{font:700 20px var(--fb);text-align:right}
+.m .i{display:block;color:var(--mut);font-size:14px}
+.evb{cursor:pointer}
+.pg{grid-column:1/-1;display:block;height:6px;background:rgba(255,255,255,.15)}
+.pg i{display:block;height:100%;background:var(--accent);box-shadow:0 0 8px var(--glow)}
+.flash{animation:fl 2.8s}
+@keyframes fl{0%,45%{background-color:var(--glow)}100%{background-color:transparent}}
 .cal{display:flex;gap:12px;padding:10px 0;border-top:2px solid var(--line)}
-.cal .d{color:var(--mut);width:118px;flex:0 0 118px;font-size:15px}
-.cal b{font-family:'Pixelify Sans',monospace;font-size:20px;font-weight:700}
-.badge{display:inline-block;background:var(--accent);color:var(--ink);font:700 12px 'Pixelify Sans',monospace;padding:2px 9px;margin-left:8px;box-shadow:var(--notch)}
+.cal .d{color:var(--mut);width:118px;flex:0 0 118px;font-size:16px}
+.cal b{font-size:19px;font-weight:700}
+.badge{display:inline-block;background:var(--accent);color:var(--ink);font:700 13px var(--fb);padding:2px 9px;margin-left:8px;box-shadow:var(--notch)}
 .more{display:block;margin:16px auto 4px}
-.cdbig{font:700 24px 'Pixelify Sans',monospace;color:var(--accent);white-space:nowrap;text-shadow:2px 2px 0 rgba(0,0,0,.5)}
+.cdbig{font:700 24px var(--fp);color:var(--accent);white-space:nowrap;text-shadow:2px 2px 0 rgba(0,0,0,.5),0 0 12px var(--glow)}
 table{width:100%;border-collapse:collapse;font-size:17px}
-th{color:var(--mut);font-weight:500;font-size:14px;text-align:right;padding:6px 4px}
+th{color:var(--mut);font-weight:600;font-size:14px;text-align:right;padding:6px 4px}
 th:nth-child(2),td:nth-child(2){text-align:left}
 td{padding:9px 4px;border-top:2px solid var(--line);text-align:right}
 td:first-child,th:first-child{text-align:center;width:34px;color:var(--accent);font-weight:700}
 tr.hl td:first-child{box-shadow:inset 4px 0 var(--accent)}
-tr.po td:first-child{box-shadow:inset 4px 0 rgba(255,255,255,.4)}
+tr.po td:first-child{box-shadow:inset 4px 0 rgba(255,255,255,.45)}
 tr.rel td:first-child{box-shadow:inset 4px 0 #ff6b6b}
 tr.cut td{border-bottom:3px dashed var(--accent)}
 td.pts{font-weight:700}
 .f1grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
-.f1grid div{background:rgba(0,0,0,.3);padding:8px 10px;font-size:14px;box-shadow:var(--notch)}
+.f1grid div{background:var(--surf);padding:8px 10px;font-size:15px;box-shadow:var(--notch)}
 .f1grid div.me{background:var(--accent);color:var(--ink)}
-.f1grid span{display:block;font-weight:700;font-size:18px}
+.f1grid span{display:block;font-weight:700;font-size:19px}
 .race{border-top:2px solid var(--line);padding:16px 0}
 .race:first-of-type{border-top:0}
-.race h3{font-size:26px}
-.ses{font-size:14px;color:var(--mut);margin-top:4px}
+.race h3{font-size:24px}
+.ses{font-size:15px;color:var(--mut);margin-top:4px}
 .podium{margin-top:10px}.podium div{padding:3px 0;font-size:19px}
-.facts{margin-top:12px;font-size:15px;color:var(--mut)}
-.facts div{margin-top:4px}
+.facts{margin-top:12px;font-size:16px;color:var(--mut)}
+.facts div{margin-top:6px}
 .facts b{color:var(--tx)}
 .err{background:#000;padding:16px;margin:18px 0}
-/* marcador en vivo */
+.off{background:#3a2a00;color:#ffd98a;padding:8px 12px;margin:0 4px 18px;font-weight:600;box-shadow:var(--notch)}
 .strip{display:flex;gap:14px;overflow-x:auto;padding:6px 6px 16px;margin:0 0 10px;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
-.tk{flex:0 0 auto;min-width:150px;background:var(--card);color:var(--tx);border:0;padding:8px 12px;text-align:left;cursor:pointer;font:600 16px 'Pixelify Sans','Courier New',monospace;box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.14)}
+.tk{flex:0 0 auto;min-width:156px;background:var(--card);color:var(--tx);border:0;padding:8px 12px;text-align:left;cursor:pointer;font:600 16px var(--fb);box-shadow:var(--notch),inset 0 -4px 0 rgba(255,255,255,.1)}
 .tk:active{transform:translateY(2px)}
-.tk .l{font-size:12px;color:var(--accent);margin-bottom:2px}
+.tk .l{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:2px}
 .tk .r{display:flex;justify-content:space-between;gap:14px}
-/* noticias */
-a.news{display:block;padding:12px 0;border-top:2px solid var(--line);color:var(--tx);text-decoration:none}
+a.news{display:block;padding:12px 0;border-top:2px solid var(--line);color:var(--tx);text-decoration:none;font-weight:600}
 a.news:first-of-type{border-top:0}
 a.news:active{color:var(--accent)}
-#upbtn{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:50px;height:50px;border:0;background:#0a8a1f;color:#fff;font:700 22px 'Pixelify Sans',monospace;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;z-index:6;box-shadow:0 0 0 3px #f2b705,0 0 0 6px var(--edge)}
+#upbtn{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:50px;height:50px;border:0;background:#0a8a1f;color:#fff;font:700 22px var(--fp);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;z-index:6;box-shadow:0 0 0 3px #f2b705,0 0 0 6px var(--edge)}
 #upbtn.show{opacity:1;pointer-events:auto}
-@media (max-width:560px){.top h1{font-size:40px}.m{grid-template-columns:66px 1fr auto}.cal .d{width:96px;flex-basis:96px}}
+#toasts{position:fixed;top:calc(10px + env(safe-area-inset-top));left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}
+.toast{background:var(--card);color:var(--tx);padding:10px 16px;font:700 17px var(--fb);box-shadow:var(--notch4),0 8px 0 rgba(0,0,0,.4),0 0 20px var(--glow);max-width:90%;animation:tin .25s}
+@keyframes tin{from{transform:translateY(-24px);opacity:0}to{transform:none;opacity:1}}
+#ptr{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:19;background:var(--card);color:var(--accent);padding:6px 14px;font:700 15px var(--fb);opacity:0;pointer-events:none;box-shadow:var(--notch),0 0 14px var(--glow)}
+@media (max-width:560px){.top h1{font-size:38px}.m{grid-template-columns:70px 1fr auto}.cal .d{width:96px;flex-basis:96px}nav button{font-size:13px}}
+@media (prefers-reduced-motion:reduce){*,body::before{animation:none!important}}
 button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:3px}
 </style>
 </head>
-<body data-t="tenis">
+<body data-t="hoy">
 <nav id="nav" role="tablist"></nav>
+<div id="ptr"></div>
 <main id="app"><p class="small">Cargando…</p></main>
+<div id="toasts"></div>
 <button id="upbtn" data-a="top" aria-label="Subir">▲</button>
 <script>
 /* ===== Pixel art: iconos dibujados a mano ===== */
 const ICONS={
+  hoy:{p:{O:'#0a0a14',R:'#ff3b3b',W:'#ffffff'},r:[
+    '............',
+    '.OOOOOOOOOO.',
+    '.ORRRRRRRRO.',
+    '.OOOOOOOOOO.',
+    '.OWWOWWOWWO.',
+    '.OWWOWWOWWO.',
+    '.OOOOOOOOOO.',
+    '.OWWOWWOWWO.',
+    '.OWWOWWOWWO.',
+    '.OOOOOOOOOO.',
+    '............',
+    '............']},
   tenis:{p:{O:'#0a0a14',Y:'#d8f03a',W:'#ffffff'},r:[
     '..OOOOOOOO..',
     '.OYYYYYYYYO.',
@@ -209,7 +235,7 @@ function pix(rows,pal,s=3){
   return `<svg class="px" viewBox="0 0 ${w} ${h}" width="${w*s}" height="${h*s}" shape-rendering="crispEdges">${r}</svg>`;
 }
 const ico=k=>pix(ICONS[k].r,ICONS[k].p,3);
-const ST=(on,s=2)=>pix(STAR,{Y:on?'var(--accent)':'rgba(255,255,255,.4)'},s);
+const ST=(on,s=2)=>pix(STAR,{Y:on?'var(--accent)':'rgba(255,255,255,.45)'},s);
 
 /* ===== Ícono del bookmark / pantalla de inicio: CRIKO SPORT en pixeles ===== */
 (function(){try{
@@ -243,7 +269,39 @@ const ST=(on,s=2)=>pix(STAR,{Y:on?'var(--accent)':'rgba(255,255,255,.4)'},s);
   const i=document.getElementById('ico');i.type='image/png';i.href=u;
 }catch{}})();
 
-/* ===== Emojis y banderas convertidos a pixel art ===== */
+/* ===== Ajustes (colores nocturnos, letra, tamaño, emojis, zona horaria, alertas) ===== */
+const THEMES={
+  medianoche:{hoy:['#0a0e27','#151b45','#060919','#8ab4ff','#060919'],tenis:['#08122e','#10204f','#050b1f','#c6f432','#050b1f'],nfl:['#06150e','#0d2b1c','#040e09','#47e08a','#040e09'],f1:['#150609','#25101a','#0d0305','#ff5252','#0d0305'],futbol:['#150d05','#2a1a0a','#0d0803','#ffb938','#0d0803']},
+  aurora:{hoy:['#0b1026','#1b1745','#070a1b','#c084fc','#070a1b'],tenis:['#061a24','#0b3140','#041016','#5eead4','#041016'],nfl:['#071a17','#0d332d','#04100e','#34d399','#04100e'],f1:['#1a0a2a','#2e1250','#0f0618','#f472b6','#0f0618'],futbol:['#1a1030','#2d1b55','#0e0820','#fbbf24','#0e0820']},
+  brasa:{hoy:['#140c0c','#2a1717','#0b0606','#fda4af','#0b0606'],tenis:['#10131f','#1d2338','#080a12','#fde047','#080a12'],nfl:['#0f140c','#1f2a17','#080b06','#a3e635','#080b06'],f1:['#1a0707','#341010','#0e0303','#fb7185','#0e0303'],futbol:['#1a0f05','#33200a','#0e0802','#fb923c','#0e0802']}
+};
+const SD={pal:'medianoche',font:'clara',size:1,emo:'nat',alert:1,tz:'America/Hermosillo'};
+let SET={...SD};
+try{Object.assign(SET,JSON.parse(localStorage.getItem('dh_set')||'{}'))}catch{}
+if(!THEMES[SET.pal])SET.pal='medianoche';
+let TZ=SET.tz||'America/Hermosillo';
+const saveSet=()=>{try{localStorage.setItem('dh_set',JSON.stringify(SET))}catch{}};
+function applyTheme(){
+  const t=(THEMES[SET.pal]||THEMES.medianoche)[ui.tab]||THEMES.medianoche.hoy,s=document.body.style;
+  ['--bg','--card','--nav','--accent','--ink'].forEach((k,i)=>s.setProperty(k,t[i]));
+  s.setProperty('--glow',t[3]+'55');
+  s.setProperty('--fb',SET.font==='pixel'?"'Pixelify Sans','Courier New',monospace":"'Barlow','Helvetica Neue',Arial,sans-serif");
+  s.zoom=String(SET.size||1);
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t[2];
+}
+function setCard(){
+  const grp=(t,k,opts)=>`<div class="day">${t}</div><div class="chips">${opts.map(([v,l])=>`<button class="chip" data-a="set" data-k="${k}" data-v="${v}" aria-pressed="${String(SET[k])===String(v)}">${l}</button>`).join('')}</div>`;
+  return `<section class="card"><h2>⚙ Ajustes</h2><div class="sub">Se guardan en tu dispositivo.</div>
+  ${grp('Colores nocturnos','pal',[['medianoche','Medianoche'],['aurora','Aurora'],['brasa','Brasa']])}
+  ${grp('Letra','font',[['clara','Clara (recomendada)'],['pixel','Todo pixel']])}
+  ${grp('Tamaño de letra','size',[[0.9,'Chica'],[1,'Normal'],[1.15,'Grande'],[1.3,'Muy grande']])}
+  ${grp('Emojis','emo',[['nat','Normales'],['pix','Pixel']])}
+  ${grp('Zona horaria','tz',CITIES.map(([n,z])=>[z,n]))}
+  ${grp('Alertas de tus favoritos (inicio, gol, final). Avisan cuando se actualizan los datos.','alert',[[1,'Sí'],[0,'No']])}
+  </section>`;
+}
+
+/* ===== Emojis opcionales en pixel art ===== */
 let EMOJI=null;
 try{EMOJI=new RegExp('\\p{Regional_Indicator}{2}|(?:\\p{Emoji_Presentation}|\\p{Extended_Pictographic}\\uFE0F)(?:\\u200D(?:\\p{Emoji_Presentation}|\\p{Extended_Pictographic}\\uFE0F?))*','gu')}catch{}
 const EMC={};
@@ -251,28 +309,27 @@ function emImg(ch){
   if(EMC[ch]!==undefined)return EMC[ch];
   let out=ch;
   try{
-    const c=document.createElement('canvas');c.width=c.height=18;
+    const c=document.createElement('canvas');c.width=c.height=20;
     const x=c.getContext('2d',{willReadFrequently:true});
-    x.font='15px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    x.font='17px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
     x.textAlign='center';x.textBaseline='middle';
-    x.fillText(ch,9,10);
-    const d=x.getImageData(0,0,18,18),a=d.data;
+    x.fillText(ch,10,11);
+    const d=x.getImageData(0,0,20,20),a=d.data;
     let any=false;
     for(let i=0;i<a.length;i+=4){
       if(a[i+3]<110){a[i+3]=0;continue}
       any=true;a[i+3]=255;
-      for(let j=0;j<3;j++)a[i+j]=Math.min(255,Math.round(a[i+j]/64)*64);
+      for(let j=0;j<3;j++)a[i+j]=Math.min(255,Math.round(a[i+j]/51)*51);
     }
     if(any){x.putImageData(d,0,0);out=`<img class="em" alt="${ch}" src="${c.toDataURL()}">`}
   }catch{}
   return EMC[ch]=out;
 }
-const P=h=>EMOJI?h.replace(EMOJI,m=>emImg(m)):h;
+const P=h=>(SET.emo==='pix'&&EMOJI)?h.replace(EMOJI,m=>emImg(m)):h;
 
-const TZ='America/Hermosillo';
 const CITIES=[['Hermosillo','America/Hermosillo'],['CDMX','America/Mexico_City'],['Madrid','Europe/Madrid'],['Buenos Aires','America/Argentina/Buenos_Aires'],['Nueva York','America/New_York'],['Londres','Europe/London']];
-const TABS=[['tenis','Tenis'],['nfl','NFL'],['f1','F1'],['futbol','Fútbol']];
-const THEME={tenis:'#163a6e',nfl:'#154a2c',f1:'#14161c',futbol:'#12203f'};
+const tzName=()=>(CITIES.find(c=>c[1]===TZ)||[TZ])[0];
+const TABS=[['hoy','Hoy'],['tenis','Tenis'],['nfl','NFL'],['f1','F1'],['futbol','Fútbol']];
 const NAT={Italian:'IT',British:'GB',Dutch:'NL',Monegasque:'MC',Spanish:'ES',Australian:'AU',Thai:'TH',French:'FR',German:'DE',Canadian:'CA',Mexican:'MX',Japanese:'JP',Finnish:'FI',Chinese:'CN',Danish:'DK',Brazilian:'BR',Argentine:'AR',American:'US',"New Zealander":'NZ'};
 /* Niveles de torneo: del más bajo (Challenger = 0) al más alto (Grand Slam = 5) */
 const LV={OTRO:-1,CH:0,'250':1,'500':2,'1000':3,FIN:4,GS:5};
@@ -281,13 +338,14 @@ const PTS={CH:'50 a 175','250':250,'500':500,'1000':1000,FIN:1500,GS:2000};
 const ZN={'uefa.champions':{top:8,po:[9,24],lab:'Los 8 de arriba pasan directo a octavos; del 9 al 24 van a playoff.'},'mex.1':{top:6,po:[7,10],lab:'Los 6 de arriba van directo a la liguilla; del 7 al 10 juegan repechaje.'}};
 const REL={'eng.1':3,'esp.1':3,'ita.1':3,'ger.1':2,'fra.1':3,'por.1':2};
 
-let D=null, err='', FS=new Set();
-const ui={tab:(location.hash||'#tenis').slice(1),rk:'all',mode:'fav',cal:'main',sort:'date',nmode:'all',fmode:'all',nflWeek:null,league:0,more:{}};
-const SAVE=['rk','mode','cal','sort','nmode','fmode','league'];
+let D=null, err='', OFFLINE=false, FS=new Set();
+const FLASH=new Set();
+const ui={tab:(location.hash||'#hoy').slice(1),rk:'all',mode:'fav',cal:'main',sort:'date',nmode:'all',fmode:'all',hsp:'all',nflWeek:null,league:0,more:{},set:false,dayOff:0};
+const SAVE=['rk','mode','cal','sort','nmode','fmode','hsp','league'];
 function loadUI(){try{Object.assign(ui,JSON.parse(localStorage.getItem('dh_ui')||'{}'))}catch{}}
 function saveUI(){try{localStorage.setItem('dh_ui',JSON.stringify(Object.fromEntries(SAVE.map(k=>[k,ui[k]]))))}catch{}}
 loadUI();
-if(!TABS.some(t=>t[0]===ui.tab))ui.tab='tenis';
+if(!TABS.some(t=>t[0]===ui.tab))ui.tab='hoy';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -298,10 +356,13 @@ const dk=iso=>new Date(iso).toLocaleDateString('en-CA',{timeZone:TZ});
 const dshort=iso=>new Date(iso).toLocaleDateString('es-MX',{timeZone:'UTC',day:'numeric',month:'short'}).replace('.','');
 const range=(a,b)=>{const x=dshort(a);if(!b)return x;const y=dshort(b);return x===y?x:`${x} a ${y}`};
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const todayKey=()=>dk(new Date().toISOString());
+const dayKey=o=>dk(new Date(Date.now()+o*864e5).toISOString());
+const todayKey=()=>dayKey(0);
+const tomorrowKey=()=>dayKey(1);
 const fechaLarga=d=>cap(new Date(d+'T12:00:00Z').toLocaleDateString('es-MX',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}));
 const lastName=n=>String(n||'').split(' ').slice(-1)[0];
-function ago(iso){const m=Math.floor((Date.now()-new Date(iso))/6e4);if(isNaN(m)||m<0)return '';if(m<60)return `hace ${m} min`;const h=Math.floor(m/60);if(h<24)return `hace ${h} h`;return `hace ${Math.floor(h/24)} d`}
+function ago(iso){const m=Math.floor((Date.now()-new Date(iso))/6e4);if(isNaN(m)||m<0)return '';if(m<1)return 'justo ahora';if(m<60)return `hace ${m} min`;const h=Math.floor(m/60);if(h<24)return `hace ${h} h`;return `hace ${Math.floor(h/24)} d`}
+const buzz=(n=15)=>{try{if(navigator.vibrate)navigator.vibrate(n)}catch{}};
 
 /* cuenta regresiva */
 function cd(iso){
@@ -312,21 +373,90 @@ function cd(iso){
 }
 const cdSpan=iso=>`<span data-cd="${iso}">${cd(iso)}</span>`;
 
+/* avisos dentro de la página */
+function toast(t){
+  const box=document.getElementById('toasts');if(!box)return;
+  const d=document.createElement('div');d.className='toast';d.innerHTML=P(esc(t));box.appendChild(d);
+  buzz(120);
+  setTimeout(()=>d.remove(),6500);
+}
+
 /* estrellas de tenistas */
 function favSet(){
   try{const s=JSON.parse(localStorage.getItem('dh_stars2'));if(Array.isArray(s))return new Set(s)}catch{}
   return new Set((D?.tenis?.ranking||[]).slice(0,5).map(r=>norm(r.name)));
 }
-function toggleStar(n){const s=favSet();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_stars2',JSON.stringify([...s]))}catch{}render()}
+function toggleStar(n){const s=favSet();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_stars2',JSON.stringify([...s]))}catch{}buzz();render()}
 
 /* estrellas de equipos (NFL y Fútbol) */
 function favTeams(){
   try{const s=JSON.parse(localStorage.getItem('dh_teams'));if(Array.isArray(s))return new Set(s)}catch{}
   return new Set();
 }
-function toggleTeam(n){const s=favTeams();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_teams',JSON.stringify([...s]))}catch{}render()}
+function toggleTeam(n){const s=favTeams();s.has(n)?s.delete(n):s.add(n);try{localStorage.setItem('dh_teams',JSON.stringify([...s]))}catch{}buzz();render()}
 const isFav=name=>FS.has(norm(name));
 const ts=name=>{const k=norm(name),on=FS.has(k);return `<button class="ts" data-a="tstar" data-n="${esc(k)}" aria-label="Seguir a ${esc(name)}" aria-pressed="${on}">${ST(on,2)}</button>`};
+const fl=id=>FLASH.has(id)?' flash':'';
+/* barra de minuto para fútbol en vivo */
+function prog(detail){
+  const m=/(\d+)/.exec(detail||'');
+  if(!m||!/'/.test(detail))return '';
+  return `<span class="pg"><i style="width:${Math.min(100,Math.round(+m[1]/90*100))}%"></i></span>`;
+}
+
+/* ===== Todos los partidos de los 3 deportes en una sola lista ===== */
+function evts(){
+  const o=[],fs=favSet();
+  (D?.nfl?.weeks||[]).forEach(w=>(w.games||[]).forEach(g=>o.push({tab:'nfl',lg:'NFL',id:'n'+g.id,date:g.date,state:g.state,detail:g.detail,a:g.away.name,b:g.home.name,al:g.away.abbr||lastName(g.away.name),bl:g.home.abbr||lastName(g.home.name),as:g.away.score,bs:g.home.score,sep:'@',fav:isFav(g.home.name)||isFav(g.away.name)})));
+  (D?.futbol?.ligas||[]).forEach(l=>(l.matches||[]).forEach(g=>o.push({tab:'futbol',lg:l.name,id:'f'+g.id,date:g.date,state:g.state,detail:g.detail,a:g.home.name,b:g.away.name,al:g.home.abbr||lastName(g.home.name),bl:g.away.abbr||lastName(g.away.name),as:g.home.score,bs:g.away.score,sep:'vs',fav:isFav(g.home.name)||isFav(g.away.name)})));
+  (D?.tenis?.tournaments||[]).forEach(t=>(t.matches||[]).forEach(m=>{
+    if(!m.p||m.p.length<2)return;
+    o.push({tab:'tenis',lg:t.name,id:'t'+m.id,date:m.date,state:m.state,detail:m.detail,a:m.p[0].name,b:m.p[1].name,al:lastName(m.p[0].name),bl:lastName(m.p[1].name),sc:m.score,sep:'vs',fav:m.p.some(p=>fs.has(norm(p.name)))});
+  }));
+  return o;
+}
+const evScore=e=>e.sc!=null?e.sc:`${e.as??0}-${e.bs??0}`;
+function evRow(e){
+  const t=e.state==='pre'?tf(e.date):e.state==='in'?'<span class="live" style="margin:0">En vivo</span>':'Final';
+  const sc=e.state==='pre'?'':(e.sc!=null?esc(e.sc):`${e.as??0} - ${e.bs??0}`);
+  const pg=(e.tab==='futbol'&&e.state==='in')?prog(e.detail):'';
+  return `<div class="m evb ${e.fav?'fav':''}${fl(e.id)}" role="button" tabindex="0" data-a="tab" data-v="${e.tab}"><span class="t">${t}</span><span class="x">${esc(e.a)} ${e.sep} ${esc(e.b)}<span class="i">${esc(e.lg)}</span></span><span class="r">${sc}</span>${pg}</div>`;
+}
+
+/* alertas: compara los datos nuevos contra los anteriores */
+function snap(){const m={};evts().forEach(e=>{m[e.id]={s:e.state,sc:evScore(e),a:e.a,b:e.b,sep:e.sep,fav:e.fav}});return m}
+function diffAlerts(prev,cur){
+  const out=[];
+  if(!SET.alert)return out;
+  for(const id in cur){
+    const c=cur[id],p=prev[id];
+    if(!p||!c.fav)continue;
+    const ic=id[0]==='f'?'⚽':id[0]==='n'?'🏈':'🎾';
+    if(p.s==='pre'&&c.s==='in')out.push(`🔴 Empezó: ${c.a} ${c.sep} ${c.b}`);
+    else if(c.s==='in'&&p.sc!==c.sc)out.push(`${ic} ${c.a} ${c.sc} ${c.b}`);
+    else if(p.s!=='post'&&c.s==='post')out.push(`🏁 Final: ${c.a} ${c.sc} ${c.b}`);
+  }
+  return out;
+}
+
+/* resumen curioso (goles/puntos totales, mayor diferencia, más cerrado) */
+function factsCard(title,list,unit){
+  const ps=list.filter(e=>e.state==='post'&&e.as!=null&&e.bs!=null);
+  if(!ps.length)return '';
+  const tot=ps.reduce((a,e)=>a+e.as+e.bs,0);
+  const best=f=>ps.reduce((b,e)=>(!b||f(e)>f(b)?e:b),null);
+  const big=best(e=>Math.abs(e.as-e.bs)),hi=best(e=>e.as+e.bs);
+  const cl=ps.filter(e=>e.as!==e.bs).reduce((b,e)=>(!b||Math.abs(e.as-e.bs)<Math.abs(b.as-b.bs)?e:b),null);
+  const dr=ps.filter(e=>e.as===e.bs).length;
+  const ln=e=>`${esc(e.a)} ${e.as}-${e.bs} ${esc(e.b)}`;
+  return `<section class="card"><h2>📊 ${title}</h2><div class="facts">
+  <div><b>${unit} totales:</b> ${tot} en ${ps.length} partidos (${(tot/ps.length).toFixed(1)} por partido)</div>
+  ${Math.abs(big.as-big.bs)>0?`<div>💥 <b>Mayor diferencia:</b> ${ln(big)}</div>`:''}
+  ${hi&&hi!==big?`<div>🔥 <b>Más ${unit.toLowerCase()} en un partido:</b> ${ln(hi)}</div>`:''}
+  ${cl&&cl!==big?`<div>🎯 <b>Más cerrado:</b> ${ln(cl)}</div>`:''}
+  ${unit==='Goles'?`<div>🤝 <b>Empates:</b> ${dr}</div>`:''}
+  </div></section>`;
+}
 
 /* tarjeta "Mis equipos" (NFL y Fútbol): en vivo, siguiente, último y posición */
 function gres(g,k){
@@ -365,20 +495,16 @@ function newsCard(tab){
 
 /* marcador en vivo (tarjetitas arriba de todo) */
 function strip(){
-  const it=[];
-  const add=(tab,lg,g)=>{
-    const mine=isFav(g.home.name)||isFav(g.away.name);
-    if(g.state==='in'||(g.state==='post'&&mine&&dk(g.date)===todayKey()))
-      it.push({tab,lg,live:g.state==='in',a:g.away.abbr||lastName(g.away.name),as:g.away.score,b:g.home.abbr||lastName(g.home.name),bs:g.home.score,st:g.state==='in'?(g.detail||'En vivo'):'Final'});
-  };
-  (D?.nfl?.weeks||[]).forEach(w=>(w.games||[]).forEach(g=>add('nfl','NFL',g)));
-  (D?.futbol?.ligas||[]).forEach(l=>(l.matches||[]).forEach(g=>add('futbol',l.name,g)));
-  (D?.tenis?.tournaments||[]).forEach(t=>(t.matches||[]).forEach(m=>{
-    if(m.state==='in'&&m.p?.length>1)it.push({tab:'tenis',lg:'Tenis',live:true,a:lastName(m.p[0].name),as:'',b:lastName(m.p[1].name),bs:'',st:m.score||'En vivo'});
-  }));
+  const tk=todayKey();
+  const it=evts().filter(e=>e.state==='in'||(e.state==='post'&&e.fav&&dk(e.date)===tk)).sort((x,y)=>(y.state==='in')-(x.state==='in'));
   if(!it.length)return '';
-  it.sort((x,y)=>(y.live-x.live));
-  return `<div class="strip">${it.slice(0,24).map(x=>`<button class="tk" data-a="tab" data-v="${x.tab}"><div class="l">${x.live?'🔴 ':''}${esc(x.lg)} · ${esc(x.st)}</div><div class="r"><span>${esc(x.a)}</span><b>${x.as??''}</b></div><div class="r"><span>${esc(x.b)}</span><b>${x.bs??''}</b></div></button>`).join('')}</div>`;
+  return `<div class="strip">${it.slice(0,24).map(e=>{
+    const st=e.state==='in'?(e.detail||'En vivo'):'Final';
+    const two=e.sc!=null
+      ?`<div class="r"><span>${esc(e.al)}</span></div><div class="r"><span>${esc(e.bl)}</span></div><div class="r"><span class="small">${esc(e.sc)}</span></div>`
+      :`<div class="r"><span>${esc(e.al)}</span><b>${e.as??''}</b></div><div class="r"><span>${esc(e.bl)}</span><b>${e.bs??''}</b></div>`;
+    return `<button class="tk${fl(e.id)}" data-a="tab" data-v="${e.tab}"><div class="l">${e.state==='in'?'🔴 ':''}${esc(e.lg)} · ${esc(st)}</div>${two}</button>`;
+  }).join('')}</div>`;
 }
 
 /* insignia de categoría + escala de nivel (cuadritos vacíos = Challenger, 5 llenos = Grand Slam) */
@@ -388,7 +514,7 @@ function catLabel(cat,tour='ATP'){
 function lvlDots(cat){
   if(!(cat in LV)||cat==='OTRO')return '';
   const n=LV[cat];let r='';
-  for(let i=0;i<5;i++)r+=`<rect x="${i*7}" y="0" width="5" height="5" style="fill:${i<n?'var(--accent)':'rgba(255,255,255,.25)'}"/>`;
+  for(let i=0;i<5;i++)r+=`<rect x="${i*7}" y="0" width="5" height="5" style="fill:${i<n?'var(--accent)':'rgba(255,255,255,.28)'}"/>`;
   return `<span class="lvl" title="Nivel ${n} de 5"><svg viewBox="0 0 33 5" width="50" height="8" shape-rendering="crispEdges">${r}</svg></span>`;
 }
 function catBadge(cat,tour='ATP'){
@@ -398,10 +524,8 @@ function catBadge(cat,tour='ATP'){
 
 /* partidos en vivo por pestaña (número rojo en el menú) */
 function liveCounts(){
-  const c={tenis:0,nfl:0,f1:0,futbol:0};
-  (D?.tenis?.tournaments||[]).forEach(t=>(t.matches||[]).forEach(m=>{if(m.state==='in')c.tenis++}));
-  (D?.nfl?.weeks||[]).forEach(w=>(w.games||[]).forEach(g=>{if(g.state==='in')c.nfl++}));
-  (D?.futbol?.ligas||[]).forEach(l=>(l.matches||[]).forEach(g=>{if(g.state==='in')c.futbol++}));
+  const c={hoy:0,tenis:0,nfl:0,f1:0,futbol:0};
+  evts().forEach(e=>{if(e.state==='in'){c[e.tab]++;c.hoy++}});
   return c;
 }
 
@@ -409,18 +533,82 @@ function header(title){
   const d=cap(new Date().toLocaleDateString('es-MX',{timeZone:TZ,weekday:'long',day:'numeric',month:'long'}));
   const u=D?.updated?new Date(D.updated).toLocaleString('es-MX',{timeZone:TZ,day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true}).replace('.','').replace(',',''):'sin datos';
   const stale=D?.updated&&Date.now()-new Date(D.updated)>5*36e5;
-  return `<div class="top"><h1>${title}</h1><div class="date">${d} · hora de Hermosillo</div>
-  <div class="bar"><button class="btn" data-a="reload">Actualizar</button><span class="small ${stale?'warn':''}">${stale?'⚠ ':''}Datos de ${esc(u)}${stale?' (ya están viejos)':''}</span></div></div>`;
+  return `<div class="top"><h1>${title}</h1><div class="date">${d} · hora de ${esc(tzName())}</div>
+  <div class="bar"><button class="btn" data-a="reload">Actualizar</button><button class="btn alt" data-a="settings">⚙ Ajustes</button></div>
+  <div class="small ${stale?'warn':''}" style="margin:-8px 0 18px">${stale?'⚠ ':''}Datos de ${esc(u)} · <span data-ago="${esc(D?.updated||'')}">${esc(ago(D?.updated))}</span>${stale?' (ya están viejos)':''}</div>
+  ${OFFLINE?'<div class="off">📴 Sin conexión: mostrando los últimos datos guardados.</div>':''}</div>`;
 }
 function moreBtn(key,total,shown,label='Ver más'){
   if(total<=shown&&!ui.more[key])return '';
   return `<button class="chip more" data-a="more" data-k="${key}">${ui.more[key]?'Ver menos':`${label} (${total-shown})`}</button>`;
 }
 
+/* ---------- LÍDERES ---------- */
+function lideresCard(){
+  const L=[];
+  const r=D?.tenis?.ranking?.[0];if(r)L.push(['🎾','ATP #1',r.name,`${Number(r.pts).toLocaleString('en-US')} pts`,'tenis']);
+  ['AFC','NFC'].forEach(c=>{const t=D?.nfl?.standings?.[c]?.[0];if(t)L.push(['🏈',c,t.team,`${t.w}-${t.l}${t.t?'-'+t.t:''}`,'nfl'])});
+  const d=D?.f1?.drivers?.[0];if(d)L.push(['🏎️','F1',d.name,`${d.points} pts`,'f1']);
+  (D?.futbol?.ligas||[]).forEach(l=>{const t=(l.table||[])[0];if(t)L.push(['⚽',l.name,t.team,`${t.pts} pts`,'futbol'])});
+  if(!L.length)return '';
+  const lim=ui.more.ld?99:6;
+  return `<section class="card"><h2>👑 Líderes</h2><div class="sub">Quién va arriba en cada competencia. Toca para ir a la sección.</div>`+
+    L.slice(0,lim).map(([ic,lab,nm,v,tab])=>`<div class="row evb" role="button" tabindex="0" data-a="tab" data-v="${tab}"><div class="b"><div class="s">${ic} ${esc(lab)}</div><div class="n">${esc(nm)}</div></div><div class="cdbig" style="font-size:20px">${esc(v)}</div></div>`).join('')+
+    moreBtn('ld',L.length,6)+'</section>';
+}
+
+/* ---------- HOY (mi día) ---------- */
+function rHoy(){
+  const E=evts(),tk=todayKey(),tm=tomorrowKey();
+  let h=header('Criko Sport');
+  const live=E.filter(e=>e.state==='in').sort((a,b)=>b.fav-a.fav);
+  const hoyAll=E.filter(e=>dk(e.date)===tk);
+  const mine=E.filter(e=>e.fav&&(dk(e.date)===tk||dk(e.date)===tm)).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  h+=`<section class="card"><h2>Tu día</h2><div class="sub">Todo en un solo lugar. Toca un partido para ir a su sección. Desliza hacia abajo para actualizar y a los lados para cambiar de pestaña.</div>
+  <div class="sum"><span>🔴 En vivo: <b>${live.length}</b></span><span>📅 Partidos hoy: <b>${hoyAll.length}</b></span><span>⭐ Tus favoritos: <b>${mine.length}</b></span></div></section>`;
+
+  const nxt=mine.find(e=>e.state==='pre');
+  h+=`<section class="card"><h2>⭐ Tus favoritos</h2>`;
+  if(nxt)h+=`<div class="row"><div class="b"><div class="s">Siguiente</div><div class="n">${esc(nxt.a)} ${nxt.sep} ${esc(nxt.b)}</div><div class="s">${esc(nxt.lg)} · ${esc(cap(df(nxt.date)))}, ${tf(nxt.date)}</div></div><div class="cdbig">${cdSpan(nxt.date)}</div></div>`;
+  if(!mine.length)h+=`<div class="empty">Tus favoritos no juegan hoy ni mañana. Marca estrellas en Tenis, NFL y Fútbol para armar tu día.</div>`;
+  else{let last='';mine.forEach(e=>{const k=dk(e.date);if(k!==last){h+=`<div class="day">${dayLabel(e.date)}</div>`;last=k}h+=evRow(e)})}
+  h+='</section>';
+
+  if(live.length){
+    const lim=ui.more.hl?99:8;
+    h+=`<section class="card"><h2>🔴 En vivo ahora</h2>${live.slice(0,lim).map(evRow).join('')}${moreBtn('hl',live.length,8)}</section>`;
+  }
+
+  const nx=D?.f1?.races?.[0];
+  if(nx&&new Date(nx.race)-Date.now()<14*864e5){
+    const q=(nx.sessions||[]).find(s=>/clasif/i.test(s.name));
+    h+=`<section class="card"><h2>🏎️ Próxima de F1</h2><div class="sub">${esc(nx.name)} · ${esc(nx.place)}</div>
+    ${q&&new Date(q.at)>Date.now()?`<div class="row"><div class="b"><div class="s">Clasificación · ${esc(cap(df(q.at)))}, ${tf(q.at)}</div></div><div class="cdbig">${cdSpan(q.at)}</div></div>`:''}
+    <div class="row"><div class="b"><div class="n">Carrera · ${esc(cap(df(nx.race)))}, ${tf(nx.race)}</div></div><div class="cdbig">${cdSpan(nx.race)}</div></div></section>`;
+  }
+
+  /* selector de día con filtro por deporte */
+  const dl=o=>o===0?'Hoy':o===-1?'Ayer':o===1?'Mañana':cap(new Date(Date.now()+o*864e5).toLocaleDateString('es-MX',{timeZone:TZ,weekday:'short',day:'numeric'}));
+  const offs=[-3,-2,-1,0,1,2,3,4,5,6];
+  const sel=dayKey(ui.dayOff);
+  const dayList=E.filter(e=>dk(e.date)===sel&&(ui.hsp==='all'||e.tab===ui.hsp)).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const lim=ui.more.ha?99:10;
+  h+=`<section class="card"><h2>📅 Partidos por día</h2><div class="sub">Elige un día y un deporte. Horario de ${esc(tzName())}.</div>
+  <div class="chips">${offs.map(o=>`<button class="chip" data-a="day" data-v="${o}" aria-pressed="${ui.dayOff===o}">${dl(o)}</button>`).join('')}</div>
+  <div class="chips">${[['all','Todos'],['tenis','Tenis'],['nfl','NFL'],['futbol','Fútbol']].map(([v,l])=>`<button class="chip" data-a="hsp" data-v="${v}" aria-pressed="${ui.hsp===v}">${l}</button>`).join('')}</div>`;
+  h+=dayList.length?dayList.slice(0,lim).map(evRow).join('')+moreBtn('ha',dayList.length,10):'<div class="empty">No hay partidos para este día y deporte.</div>';
+  h+='</section>';
+
+  h+=lideresCard();
+  const f=E.filter(e=>e.tab==='futbol'&&dk(e.date)===tk),n=E.filter(e=>e.tab==='nfl'&&dk(e.date)===tk);
+  h+=factsCard('Resumen del fútbol de hoy',f,'Goles')+factsCard('Resumen de la NFL de hoy',n,'Puntos');
+  return h+newsCard('futbol');
+}
+
 /* ---------- TENIS ---------- */
 function dayLabel(iso){
-  const k=dk(iso),t=todayKey(),tm=dk(new Date(Date.now()+864e5).toISOString()),y=dk(new Date(Date.now()-864e5).toISOString());
-  return k===t?'Hoy':k===tm?'Mañana':k===y?'Ayer':cap(df(iso));
+  const k=dk(iso);
+  return k===dayKey(0)?'Hoy':k===dayKey(1)?'Mañana':k===dayKey(-1)?'Ayer':cap(df(iso));
 }
 function rTenis(){
   const t=D?.tenis||{},rk=t.ranking||[],fav=favSet();
@@ -435,7 +623,7 @@ function rTenis(){
   const upset=m=>{if(m.state!=='post')return false;const w=m.p.find(p=>p.winner),l=m.p.find(p=>!p.winner);return !!(w&&l&&rankOf[norm(l.name)]!=null&&rankOf[norm(w.name)]==null)};
   const nameHtml=(p,m)=>{const r=rankOf[norm(p.name)],w=m.state==='post'&&p.winner;
     return `<span class="${w?'w':''}">${keep(p)?'<b>'+esc(p.name)+'</b>':esc(p.name)}${r?` <span class="rk">#${r}</span>`:''}${w?' ✓':''}</span>`};
-  const row=m=>`<div class="m"><span class="t">${m.state==='pre'?tf(m.date):m.state==='in'?'<span class="live" style="margin:0">En vivo</span>':'Final'}</span><span class="x">${m.p.map(p=>nameHtml(p,m)).join(' vs ')}${(m.round||upset(m))?`<span class="i">${esc(m.round)}${upset(m)?' · 🔥 Sorpresa':''}</span>`:''}</span><span class="r">${m.state==='pre'?'':esc(m.score)}</span></div>`;
+  const row=m=>`<div class="m${fl('t'+m.id)}"><span class="t">${m.state==='pre'?tf(m.date):m.state==='in'?'<span class="live" style="margin:0">En vivo</span>':'Final'}</span><span class="x">${m.p.map(p=>nameHtml(p,m)).join(' vs ')}${(m.round||upset(m))?`<span class="i">${esc(m.round)}${upset(m)?' · 🔥 Sorpresa':''}</span>`:''}</span><span class="r">${m.state==='pre'?'':esc(m.score)}</span></div>`;
   const grouped=ms=>{let last='',h='';ms.forEach(m=>{const k=dk(m.date);if(k!==last){h+=`<div class="day">${dayLabel(m.date)}</div>`;last=k}h+=row(m)});return h};
   /* quién del Top 20 sigue vivo y quién ya quedó eliminado en cada torneo */
   const ao=tn=>{
@@ -476,7 +664,7 @@ function rTenis(){
   }
   h+=newsCard('tenis');
 
-  h+=`<section class="card"><h2>¿De quién quieres ver partidos?</h2><div class="sub">${desc}. Los torneos nuevos aparecen solos. Horario de Hermosillo.</div>
+  h+=`<section class="card"><h2>¿De quién quieres ver partidos?</h2><div class="sub">${desc}. Los torneos nuevos aparecen solos. Horario de ${esc(tzName())}.</div>
   <div class="chips">${[['fav',`${ST(1)} Mis estrellas`],['top3','Top 3'],['top5','Top 5'],['all','Top 20']].map(([v,l])=>`<button class="chip" data-a="mode" data-v="${v}" aria-pressed="${ui.mode===v}">${l}</button>`).join('')}</div>
   <div class="sum"><span>🔴 En vivo: <b>${nLive}</b></span><span>⏳ Por jugar: <b>${nNext}</b></span><span>✅ Terminados: <b>${nDone}</b></span></div></section>`;
 
@@ -489,17 +677,17 @@ function rTenis(){
     if(tn.live.length)h+=`<div class="day">En vivo ahora</div>`+tn.live.map(row).join('');
     if(tn.next.length){
       const lim=ui.more['nx'+i]?999:8;
-      h+=`<div class="day" style="font-size:16px;margin-top:18px">Próximos partidos</div>`+grouped(tn.next.slice(0,lim))+moreBtn('nx'+i,tn.next.length,8,'Ver más próximos');
+      h+=`<div class="day" style="margin-top:18px">Próximos partidos</div>`+grouped(tn.next.slice(0,lim))+moreBtn('nx'+i,tn.next.length,8,'Ver más próximos');
     }else if(!tn.live.length)h+=`<div class="empty">No hay más partidos por jugar de este grupo en este torneo.</div>`;
     if(tn.done.length){
       h+=`<button class="chip more" data-a="more" data-k="dn${i}">${ui.more['dn'+i]?'Ocultar resultados':`Ver resultados (${tn.done.length})`}</button>`;
-      if(ui.more['dn'+i])h+=`<div class="day" style="font-size:16px;margin-top:14px">Resultados</div>`+grouped(tn.done);
+      if(ui.more['dn'+i])h+=`<div class="day" style="margin-top:14px">Resultados</div>`+grouped(tn.done);
     }
     h+='</section>';
   });
 
-  const fl=r=>ui.rk==='all'||(ui.rk==='stars'&&fav.has(norm(r.name)))||(ui.rk==='top10'&&r.rank<=10)||(ui.rk==='11'&&r.rank>10);
-  const list=rk.filter(fl);
+  const fl2=r=>ui.rk==='all'||(ui.rk==='stars'&&fav.has(norm(r.name)))||(ui.rk==='top10'&&r.rank<=10)||(ui.rk==='11'&&r.rank>10);
+  const list=rk.filter(fl2);
   h+=`<section class="card"><h2>Top 20 ATP</h2><div class="sub">Toca la estrella para elegir a quién sigues. ▲ y ▼ comparan con el ranking anterior.</div>
   <div class="chips">${[['all','Todos'],['stars','Mis estrellas'],['top10','Top 10'],['11','11 a 20']].map(([v,l])=>`<button class="chip" data-a="rk" data-v="${v}" aria-pressed="${ui.rk===v}">${l}</button>`).join('')}</div>
   <div class="small" style="margin-bottom:6px">Sigues a <b style="color:var(--accent)">${rk.filter(r=>fav.has(norm(r.name))).length}</b> de ${rk.length}. Mostrando ${list.length}.</div>`;
@@ -567,7 +755,7 @@ function rNfl(){
     const fin=w.games.every(g=>g.state==='post');
     const nLive=w.games.filter(g=>g.state==='in').length;
     const gs=w.games.filter(g=>ui.nmode==='all'||(ui.nmode==='live'&&g.state==='in')||(ui.nmode==='fav'&&(isFav(g.home.name)||isFav(g.away.name))));
-    h+=`<section class="card"><h2>${esc(w.label)}</h2><div class="sub">${fin?'Semana terminada: los resultados se quedan 24 horas.':'Horario de Hermosillo.'} 🔥 es un juego cerrado en el 4º cuarto.</div>
+    h+=`<section class="card"><h2>${esc(w.label)}</h2><div class="sub">${fin?'Semana terminada: los resultados se quedan 24 horas.':`Horario de ${esc(tzName())}.`} 🔥 es un juego cerrado en el 4º cuarto.</div>
     <div class="chips">${ws.map(x=>`<button class="chip" data-a="week" data-w="${x.week}" data-ty="${x.type}" aria-pressed="${x===w}">${esc(x.label)}</button>`).join('')}</div>
     <div class="chips">${[['all','Todos'],['live',`🔴 En vivo (${nLive})`],['fav',`${ST(1)} Mis equipos`]].map(([v,l])=>`<button class="chip" data-a="nmode" data-v="${v}" aria-pressed="${ui.nmode===v}">${l}</button>`).join('')}</div>`;
     if(!gs.length)h+=`<div class="empty">${ui.nmode==='live'?'No hay juegos en vivo ahorita.':ui.nmode==='fav'?'Tus equipos no juegan esta semana (o aún no marcas ninguno).':'Sin juegos.'}</div>`;
@@ -576,13 +764,15 @@ function rNfl(){
       const k=dk(g.date);
       if(k!==last){h+=`<div class="day">${cap(df(g.date))}</div>`;last=k}
       const a=g.away,b=g.home,post=g.state==='post';
-      const nm=(t,win)=>`<span class="${win?'w':''}">${win?'<b>'+esc(t.name)+'</b>':esc(t.name)}${t.record?` <span class="s small">(${esc(t.record)})</span>`:''}</span>`;
+      const nm=(t,win)=>`<span class="${win?'w':''}">${win?'<b>'+esc(t.name)+'</b>':esc(t.name)}${t.record?` <span class="rk">(${esc(t.record)})</span>`:''}</span>`;
       const right=g.state==='pre'?'':`${a.score??0} - ${b.score??0}`;
       const f=isFav(a.name)||isFav(b.name);
       const close=g.state==='in'&&/4th|OT/i.test(g.detail||'')&&Math.abs((a.score||0)-(b.score||0))<=8;
-      h+=`<div class="m ${f?'fav':''}"><span class="t">${g.state==='pre'?tf(g.date):esc(post?'Final':g.detail||'En vivo')}</span><span class="x">${nm(a,post&&a.winner)} @ ${nm(b,post&&b.winner)}${close?' 🔥':''}</span><span class="r">${right}</span></div>`;
+      h+=`<div class="m ${f?'fav':''}${fl('n'+g.id)}"><span class="t">${g.state==='pre'?tf(g.date):esc(post?'Final':g.detail||'En vivo')}</span><span class="x">${nm(a,post&&a.winner)} @ ${nm(b,post&&b.winner)}${close?' 🔥':''}</span><span class="r">${right}</span></div>`;
     });
     h+='</section>';
+    const ids=new Set(w.games.map(g=>'n'+g.id));
+    h+=factsCard('Resumen de la semana',evts().filter(e=>e.tab==='nfl'&&ids.has(e.id)),'Puntos');
   }
   ['AFC','NFC'].forEach(c=>{
     const arr=n.standings?.[c]||[];
@@ -596,7 +786,7 @@ function rNfl(){
 
 /* ---------- F1 ---------- */
 function cityTimes(iso){
-  return `<div class="f1grid">${CITIES.map(([n,tz],i)=>`<div class="${i===0?'me':''}">${n}<span>${tf(iso,tz)}</span>${df(iso,tz)}</div>`).join('')}</div>`;
+  return `<div class="f1grid">${CITIES.map(([n,tz])=>`<div class="${tz===TZ?'me':''}">${n}<span>${tf(iso,tz)}</span>${df(iso,tz)}</div>`).join('')}</div>`;
 }
 function rF1(){
   const f=D?.f1||{};
@@ -624,7 +814,7 @@ function rF1(){
     ${q.results[1]?`<div>2.º <b>${esc(q.results[1].name)}</b> <span class="small">${esc(q.results[1].team)} · ${esc(best(q.results[1]))}</span></div>`:''}
     ${q.results[2]?`<div>3.º <b>${esc(q.results[2].name)}</b> <span class="small">${esc(q.results[2].team)} · ${esc(best(q.results[2]))}</span></div>`:''}</div>
     ${w?`<div class="facts"><div>${w.name===pole.name?'✅ <b>Ganó desde la pole.</b>':`La carrera la ganó <b>${esc(w.name)}</b>, que no salió de la pole.`}</div></div>`:''}
-    <table style="margin-top:14px"><thead><tr><th>#</th><th>Piloto</th><th>Mejor tiempo</th></tr></thead><tbody>${q.results.slice(0,ui.more.q?999:10).map(r=>`<tr><td>${esc(r.pos)}</td><td>${esc(r.name)}<div class="s small">${esc(r.team)}</div></td><td>${esc(best(r))}<div class="s small">${ph(r)}</div></td></tr>`).join('')}</tbody></table>${moreBtn('q',q.results.length,10,'Ver parrilla completa')}</section>`;
+    <table style="margin-top:14px"><thead><tr><th>#</th><th>Piloto</th><th>Mejor tiempo</th></tr></thead><tbody>${q.results.slice(0,ui.more.q?999:10).map(r=>`<tr><td>${esc(r.pos)}</td><td>${esc(r.name)}<div class="s">${esc(r.team)}</div></td><td>${esc(best(r))}<div class="s">${ph(r)}</div></td></tr>`).join('')}</tbody></table>${moreBtn('q',q.results.length,10,'Ver parrilla completa')}</section>`;
   }
 
   /* última carrera */
@@ -645,18 +835,18 @@ function rF1(){
     ${mover?`<div>🚀 <b>Más posiciones ganadas:</b> ${esc(mover.name)} (+${mover.grid-Number(mover.pos)})</div>`:''}
     ${dnfs.length?`<div>🚩 <b>Abandonos (${dnfs.length}):</b> ${dnfs.map(d=>`${esc(d.name)} (${esc(d.status)})`).join(', ')}</div>`:''}
     </div>`;
-    if(rs.length)h+=`<table style="margin-top:14px"><thead><tr><th>#</th><th>Piloto</th><th>Tiempo</th><th>Pts</th></tr></thead><tbody>${rs.slice(0,ui.more.res?999:10).map(d=>`<tr><td>${esc(d.pos)}</td><td>${esc(d.name)}${d.fl?' 🟣':''}<div class="s small">${esc(d.team)}${gd(d)}</div></td><td>${esc(d.time)}</td><td class="pts">${d.points}</td></tr>`).join('')}</tbody></table>${moreBtn('res',rs.length,10,'Ver resultado completo')}`;
+    if(rs.length)h+=`<table style="margin-top:14px"><thead><tr><th>#</th><th>Piloto</th><th>Tiempo</th><th>Pts</th></tr></thead><tbody>${rs.slice(0,ui.more.res?999:10).map(d=>`<tr><td>${esc(d.pos)}</td><td>${esc(d.name)}${d.fl?' 🟣':''}<div class="s">${esc(d.team)}${gd(d)}</div></td><td>${esc(d.time)}</td><td class="pts">${d.points}</td></tr>`).join('')}</tbody></table>${moreBtn('res',rs.length,10,'Ver resultado completo')}`;
     h+='</section>';
   }
 
-  h+=`<section class="card"><h2>Próximas carreras</h2><div class="sub">Horario de la carrera en Hermosillo y 5 ciudades.</div>`;
+  h+=`<section class="card"><h2>Próximas carreras</h2><div class="sub">Horario de la carrera en ${CITIES.length} ciudades (la tuya va resaltada).</div>`;
   if(!races.length)h+='<div class="empty">Sin carreras programadas por ahora.</div>';
   const lim=ui.more.races?999:3;
   races.slice(0,lim).forEach(r=>{
     const mx=/mexico/i.test(r.country);
-    h+=`<div class="race"><h3>${mx?'🇲🇽 ':''}${esc(r.name)}${hasSprint(r)?'<span class="badge">⚡ Sprint</span>':''}</h3><div class="s small">${esc(cap(df(r.race)))} · ${esc(r.place)}</div>`;
+    h+=`<div class="race"><h3>${mx?'🇲🇽 ':''}${esc(r.name)}${hasSprint(r)?'<span class="badge">⚡ Sprint</span>':''}</h3><div class="s">${esc(cap(df(r.race)))} · ${esc(r.place)}</div>`;
     h+=`<div class="ses"><b style="color:var(--tx)">Carrera</b></div>${cityTimes(r.race)}`;
-    (r.sessions||[]).forEach(s=>{h+=`<div class="ses">${esc(s.name)}: ${esc(cap(df(s.at)))}, ${tf(s.at)} Hermosillo</div>`});
+    (r.sessions||[]).forEach(s=>{h+=`<div class="ses">${esc(s.name)}: ${esc(cap(df(s.at)))}, ${tf(s.at)} ${esc(tzName())}</div>`});
     h+='</div>';
   });
   h+=moreBtn('races',races.length,3)+'</section>';
@@ -668,7 +858,7 @@ function rF1(){
   const vivos=ds.filter(d=>lead-d.points<=maxPts).length;
   h+=`<section class="card"><h2>Pilotos</h2><div class="sub">Quedan ${rem} carreras${spr?` (${spr} con sprint)`:''}: hay hasta ${maxPts} pts en juego. Con chances de título: <b style="color:var(--accent)">${vivos}</b> pilotos.</div>`;
   if(!ds.length)h+='<div class="empty">Sin tabla por ahora.</div>';
-  else h+=`<table><thead><tr><th>#</th><th>Piloto</th><th>Gan.</th><th>Pts</th></tr></thead><tbody>${ds.slice(0,ui.more.drv?999:10).map(d=>{const gap=lead-d.points;return `<tr><td>${d.pos}</td><td>${flag(NAT[d.nationality])} ${esc(d.name)}<div class="s small">${esc(d.team)}${d.pos>1?` · −${gap} del líder${gap>maxPts?' · sin chances de título':''}`:' · líder'}</div></td><td>${d.wins}</td><td class="pts">${d.points}</td></tr>`}).join('')}</tbody></table>${moreBtn('drv',ds.length,10,'Ver todos')}`;
+  else h+=`<table><thead><tr><th>#</th><th>Piloto</th><th>Gan.</th><th>Pts</th></tr></thead><tbody>${ds.slice(0,ui.more.drv?999:10).map(d=>{const gap=lead-d.points;return `<tr><td>${d.pos}</td><td>${flag(NAT[d.nationality])} ${esc(d.name)}<div class="s">${esc(d.team)}${d.pos>1?` · −${gap} del líder${gap>maxPts?' · sin chances de título':''}`:' · líder'}</div></td><td>${d.wins}</td><td class="pts">${d.points}</td></tr>`}).join('')}</tbody></table>${moreBtn('drv',ds.length,10,'Ver todos')}`;
   h+='</section>';
 
   /* constructores: de la API; si no hay, se calculan con los puntos de los pilotos */
@@ -690,7 +880,7 @@ function matchRow(g){
   const t=pre?tf(g.date):esc(post?'Final':g.detail||'En vivo');
   const f=isFav(g.home.name)||isFav(g.away.name);
   const gol=post&&Math.abs((g.home.score??0)-(g.away.score??0))>=4;
-  return `<div class="m ${f?'fav':''}"><span class="t">${t}</span><span class="x">${nm(g.home,post&&g.home.winner)} vs ${nm(g.away,post&&g.away.winner)}${gol?' 🔥':''}</span><span class="r">${right}</span></div>`;
+  return `<div class="m ${f?'fav':''}${fl('f'+g.id)}"><span class="t">${t}</span><span class="x">${nm(g.home,post&&g.home.winner)} vs ${nm(g.away,post&&g.away.winner)}${gol?' 🔥':''}</span><span class="r">${right}</span>${g.state==='in'?prog(g.detail):''}</div>`;
 }
 function futPos(k){
   const out=[];
@@ -711,11 +901,12 @@ function rFutbol(){
   const ok=g=>ui.fmode==='all'||(ui.fmode==='live'&&g.state==='in')||(ui.fmode==='fav'&&(isFav(g.home.name)||isFav(g.away.name)));
   const hoy=ls.map(l=>({l,g:(l.matches||[]).filter(g=>dk(g.date)===tk&&ok(g))})).filter(x=>x.g.length);
   const nLive=ls.reduce((a,l)=>a+(l.matches||[]).filter(g=>g.state==='in').length,0);
-  h+=`<section class="card"><h2>Hoy en las ${ls.length} ligas</h2><div class="sub">Horario de Hermosillo. 🔥 es una goleada (4 o más goles de diferencia).</div>
+  h+=`<section class="card"><h2>Hoy en las ${ls.length} ligas</h2><div class="sub">Horario de ${esc(tzName())}. 🔥 es una goleada (4 o más goles de diferencia).</div>
   <div class="chips">${[['all','Todos'],['live',`🔴 En vivo (${nLive})`],['fav',`${ST(1)} Mis equipos`]].map(([v,l])=>`<button class="chip" data-a="fmode" data-v="${v}" aria-pressed="${ui.fmode===v}">${l}</button>`).join('')}</div>`;
   if(!hoy.length)h+=`<div class="empty">${ui.fmode==='live'?'No hay partidos en vivo ahorita.':ui.fmode==='fav'?'Tus equipos no juegan hoy (o aún no marcas ninguno).':'Hoy no hay partidos en estas ligas.'}</div>`;
   hoy.forEach(x=>{h+=`<div class="day">${esc(lname(x.l))}</div>`+x.g.map(matchRow).join('')});
   h+='</section>';
+  h+=factsCard('Resumen de resultados recientes',evts().filter(e=>e.tab==='futbol'&&e.state==='post'&&Date.now()-new Date(e.date)<36*36e5),'Goles');
   if(ui.league>=ls.length)ui.league=0;
   const l=ls[ui.league];
   h+=`<div class="chips">${ls.map((x,i)=>{const n=(x.matches||[]).filter(g=>g.state==='in').length;return `<button class="chip" data-a="league" data-i="${i}" aria-pressed="${i===ui.league}">${esc(lname(x))}${n?` 🔴${n}`:''}</button>`}).join('')}</div>`;
@@ -723,7 +914,7 @@ function rFutbol(){
   const today=ms.filter(g=>dk(g.date)===tk);
   const next=ms.filter(g=>g.state==='pre'&&dk(g.date)>tk);
   const rec=ms.filter(g=>g.state==='post'&&dk(g.date)<=tk).reverse();
-  h+=`<section class="card"><h2>${esc(lname(l))}: hoy</h2><div class="sub">Hora de Hermosillo.</div>${today.length?today.map(matchRow).join(''):'<div class="empty">Hoy no hay partidos de esta liga.</div>'}</section>`;
+  h+=`<section class="card"><h2>${esc(lname(l))}: hoy</h2><div class="sub">Hora de ${esc(tzName())}.</div>${today.length?today.map(matchRow).join(''):'<div class="empty">Hoy no hay partidos de esta liga.</div>'}</section>`;
   h+=`<section class="card"><h2>Próximos</h2>`;
   if(!next.length)h+='<div class="empty">No hay partidos programados por ahora.</div>';
   else{let last='';next.slice(0,ui.more.nx?999:8).forEach(g=>{const k=dk(g.date);if(k!==last){h+=`<div class="day">${cap(df(g.date))}</div>`;last=k}h+=matchRow(g)});h+=moreBtn('nx',next.length,8)}
@@ -744,27 +935,76 @@ function rFutbol(){
 function render(){
   FS=favTeams();
   document.body.dataset.t=ui.tab;
-  const tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=THEME[ui.tab]||'#163a6e';
+  applyTheme();
   const lc=liveCounts();
-  document.getElementById('nav').innerHTML=P(TABS.map(([k,l])=>`<button role="tab" data-a="tab" data-v="${k}" aria-selected="${k===ui.tab}"><span class="e">${ico(k)}</span>${l}${lc[k]?`<span class="nl">${lc[k]}</span>`:''}</button>`).join(''));
+  document.getElementById('nav').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-a="tab" data-v="${k}" aria-selected="${k===ui.tab}"><span class="e">${ico(k)}</span>${l}${lc[k]?`<span class="nl">${lc[k]}</span>`:''}</button>`).join('');
   const app=document.getElementById('app');
   if(!D){app.innerHTML=err?`<div class="err">${esc(err)}</div><button class="btn" data-a="reload">Reintentar</button>`:'<p class="small">Cargando…</p>';return}
-  app.innerHTML=P(strip()+({tenis:rTenis,nfl:rNfl,f1:rF1,futbol:rFutbol})[ui.tab]());
+  app.innerHTML=P((ui.set?setCard():'')+(ui.tab==='hoy'?'':strip())+({hoy:rHoy,tenis:rTenis,nfl:rNfl,f1:rF1,futbol:rFutbol})[ui.tab]());
 }
 async function load(){
   try{
     const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
     if(!r.ok)throw new Error('No se pudo leer data.json ('+r.status+')');
-    D=await r.json();err='';
-  }catch(e){err=e.message;}
+    const nd=await r.json();
+    FS=favTeams();
+    const prev=D?snap():null;
+    D=nd;err='';OFFLINE=false;
+    try{localStorage.setItem('dh_cache',JSON.stringify(nd))}catch{}
+    if(prev){
+      const cur=snap();
+      FLASH.clear();
+      for(const id in cur){const p=prev[id],c=cur[id];if(p&&(p.sc!==c.sc||p.s!==c.s))FLASH.add(id)}
+      diffAlerts(prev,cur).slice(0,4).forEach(toast);
+      setTimeout(()=>FLASH.clear(),3500);
+    }
+  }catch(e){
+    if(D){OFFLINE=true}
+    else{
+      let c=null;try{c=JSON.parse(localStorage.getItem('dh_cache')||'null')}catch{}
+      if(c){D=c;OFFLINE=true}else err=e.message;
+    }
+  }
   render();
 }
+
+/* ===== Gestos: deslizar abajo = actualizar, deslizar a los lados = cambiar de pestaña ===== */
+const G={x:0,y:0,on:false,t:null};
+document.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1){G.on=false;return}
+  G.on=true;G.x=e.touches[0].clientX;G.y=e.touches[0].clientY;G.t=e.target;G.top=window.scrollY<=0;
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!G.on||!G.top)return;
+  const d=e.touches[0].clientY-G.y,dx=Math.abs(e.touches[0].clientX-G.x),el=document.getElementById('ptr');
+  if(d>24&&dx<40){el.style.opacity=Math.min(1,d/90);el.textContent=d>90?'⟳ Suelta para actualizar':'↓ Desliza para actualizar'}
+  else el.style.opacity=0;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!G.on)return;G.on=false;
+  const t=e.changedTouches[0],dx=t.clientX-G.x,dy=t.clientY-G.y,el=document.getElementById('ptr');
+  el.style.opacity=0;
+  if(G.top&&dy>90&&Math.abs(dx)<50&&window.scrollY<=0){buzz(20);load();return}
+  const blocked=G.t&&G.t.closest&&G.t.closest('.chips,.strip,table,input');
+  if(!blocked&&Math.abs(dx)>85&&Math.abs(dx)>Math.abs(dy)*2){
+    const i=TABS.findIndex(x=>x[0]===ui.tab),j=Math.max(0,Math.min(TABS.length-1,i+(dx<0?1:-1)));
+    if(j!==i){ui.tab=TABS[j][0];location.hash=ui.tab;render();window.scrollTo(0,0)}
+  }
+},{passive:true});
+
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,y=window.scrollY;
   if(a==='top'){window.scrollTo({top:0,behavior:'smooth'});return}
   if(a==='tab'){ui.tab=b.dataset.v;location.hash=ui.tab;render();window.scrollTo(0,0);return}
   if(a==='reload'){load();return}
+  if(a==='settings'){ui.set=!ui.set;render();window.scrollTo(0,0);return}
+  if(a==='set'){
+    const k=b.dataset.k,v=b.dataset.v;
+    SET[k]=(k==='size'||k==='alert')?+v:v;
+    if(k==='tz')TZ=v;
+    saveSet();render();window.scrollTo(0,y);return;
+  }
   if(a==='star'){toggleStar(b.dataset.n);window.scrollTo(0,y);return}
   if(a==='tstar'){toggleTeam(b.dataset.n);window.scrollTo(0,y);return}
   if(a==='rk')ui.rk=b.dataset.v;
@@ -773,6 +1013,8 @@ document.addEventListener('click',e=>{
   if(a==='sort')ui.sort=b.dataset.v;
   if(a==='nmode')ui.nmode=b.dataset.v;
   if(a==='fmode')ui.fmode=b.dataset.v;
+  if(a==='hsp')ui.hsp=b.dataset.v;
+  if(a==='day')ui.dayOff=+b.dataset.v;
   if(a==='week'){ui.nflWeek=+b.dataset.w;ui.nflType=+b.dataset.ty}
   if(a==='league')ui.league=+b.dataset.i;
   if(a==='more')ui.more[b.dataset.k]=!ui.more[b.dataset.k];
@@ -781,7 +1023,10 @@ document.addEventListener('click',e=>{
 });
 window.addEventListener('scroll',()=>document.getElementById('upbtn').classList.toggle('show',window.scrollY>700),{passive:true});
 setInterval(load,10*60*1000);
-setInterval(()=>document.querySelectorAll('[data-cd]').forEach(el=>{el.textContent=cd(el.dataset.cd)}),30000);
+setInterval(()=>{
+  document.querySelectorAll('[data-cd]').forEach(el=>{el.textContent=cd(el.dataset.cd)});
+  document.querySelectorAll('[data-ago]').forEach(el=>{el.textContent=ago(el.dataset.ago)});
+},30000);
 load();
 </script>
 </body>
