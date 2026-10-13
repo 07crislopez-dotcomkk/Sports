@@ -1,4 +1,4 @@
-// scripts/update.mjs — baja datos de Tenis, NFL, F1 y Fútbol y los guarda en data.json
+// scripts/update.mjs — baja datos de Tenis, NFL, F1, Fútbol y Noticias y los guarda en data.json
 import { readFile, writeFile } from 'node:fs/promises';
 
 const OUT = 'data.json';
@@ -23,6 +23,14 @@ const NFL_WEEKS = 18;
 
 // Posibles direcciones del feed de Challengers en ESPN (no confirmadas: se prueban en orden)
 const CH_SLUGS = ['atp-challenger', 'challenger', 'atp_challenger'];
+
+// Feeds de noticias de ESPN por pestaña (no confirmados: si uno falla se salta)
+const NEWS_FEEDS = {
+  tenis: ['tennis/atp'],
+  nfl: ['football/nfl'],
+  f1: ['racing/f1'],
+  futbol: ['soccer/eng.1', 'soccer/esp.1', 'soccer/mex.1', 'soccer/uefa.champions'],
+};
 
 /* ---- Categorías de torneo (por nombre). Edita estas listas si algún torneo cae mal ---- */
 const CHALLENGER = /challenger/i;
@@ -440,6 +448,32 @@ async function futbol() {
   return { ligas };
 }
 
+/* ---------------- NOTICIAS ---------------- */
+async function noticias() {
+  const out = {};
+  for (const [k, feeds] of Object.entries(NEWS_FEEDS)) {
+    const seen = new Set();
+    const arr = [];
+    for (const f of feeds) {
+      try {
+        const d = await getJSON(`${ESPN}/${f}/news?limit=10`);
+        for (const a of d.articles || []) {
+          const url = a.links?.web?.href;
+          const title = a.headline;
+          if (!url || !title || seen.has(url)) continue;
+          seen.add(url);
+          arr.push({ title, url, published: a.published || a.lastModified || '' });
+        }
+      } catch (e) {
+        console.warn(`Noticias ${f}: ${e.message}`);
+      }
+    }
+    arr.sort((a, b) => new Date(b.published) - new Date(a.published));
+    out[k] = arr.slice(0, 8);
+  }
+  return out;
+}
+
 /* ---------------- MAIN ---------------- */
 let old = {};
 try {
@@ -462,6 +496,15 @@ res.forEach((r, i) => {
 if (fallos === keys.length) {
   console.error('Fallaron todas las secciones');
   process.exit(1);
+}
+try {
+  const n = await noticias();
+  const hay = Object.values(n).some((a) => a.length);
+  out.news = hay ? n : old.news || {};
+  console.log('Noticias:', Object.entries(n).map(([k, a]) => `${k}=${a.length}`).join(' '));
+} catch (e) {
+  console.warn('Noticias fallaron:', e?.message);
+  if (old.news) out.news = old.news;
 }
 await writeFile(OUT, JSON.stringify(out));
 console.log('data.json listo. Secciones con error:', fallos);
