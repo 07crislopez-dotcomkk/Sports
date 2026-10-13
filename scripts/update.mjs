@@ -21,6 +21,29 @@ const LIGAS = [
 
 const NFL_WEEKS = 18;
 
+// Posibles direcciones del feed de Challengers en ESPN (no confirmadas: se prueban en orden)
+const CH_SLUGS = ['atp-challenger', 'challenger', 'atp_challenger'];
+
+/* ---- Categorías de torneo (por nombre). Edita estas listas si algún torneo cae mal ---- */
+const CHALLENGER = /challenger/i;
+const GRAND_SLAM = /australian open|roland.garros|french open|wimbledon|us open/i;
+const FINALES = /atp finals|wta finals|next gen/i;
+const OTROS = /laver cup|davis cup|billie jean|united cup|olympic|hopman/i;
+const ATP_1000 = /indian wells|bnp paribas open|miami open|monte.carlo|madrid|mutua|italian open|internazionali|\brome\b|canadian open|national bank open|toronto|montreal|cincinnati|western.{0,6}southern|shanghai|paris masters|rolex paris/i;
+const ATP_500 = /rotterdam|abn amro|dubai|acapulco|abierto mexicano|rio open|barcelona|conde de godo|\bqueen'?s|hsbc championships|\bhalle\b|terra wortmann|hamburg|washington|citi open|beijing|china open|tokyo|japan open|vienna|erste bank|basel|swiss indoors|doha|qatar/i;
+const WTA_1000 = /indian wells|bnp paribas open|miami open|madrid|mutua|italian open|internazionali|\brome\b|canadian open|national bank open|toronto|montreal|cincinnati|beijing|china open|wuhan|doha|qatar|dubai/i;
+const WTA_500 = /adelaide|brisbane|charleston|stuttgart|berlin|eastbourne|washington|citi open|tokyo|pan pacific|ningbo|linz|strasbourg|abu dhabi|san diego|hamburg|merida|guadalajara|rouen|bad homburg|monterrey|rabat|cleveland/i;
+
+function catOf(name, tour = 'ATP') {
+  const n = name || '';
+  if (CHALLENGER.test(n)) return 'CH';
+  if (OTROS.test(n)) return 'OTRO';
+  if (GRAND_SLAM.test(n)) return 'GS';
+  if (FINALES.test(n)) return 'FIN';
+  if (tour === 'WTA') return WTA_1000.test(n) ? '1000' : WTA_500.test(n) ? '500' : '250';
+  return ATP_1000.test(n) ? '1000' : ATP_500.test(n) ? '500' : '250';
+}
+
 async function getJSON(url) {
   const r = await fetch(url, { headers: { 'user-agent': 'deportes-hoy' } });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
@@ -59,11 +82,29 @@ function parseGame(ev) {
 }
 
 /* ---------------- TENIS ---------------- */
-function parseCalendar(arr) {
+// Acepta calendarios planos o anidados (entries) y distintos nombres de campos
+function flatCal(arr) {
+  const out = [];
+  const walk = (a) => {
+    for (const c of a || []) {
+      if (!c || typeof c !== 'object') continue;
+      if (Array.isArray(c.entries) && c.entries.length) walk(c.entries);
+      else out.push(c);
+    }
+  };
+  walk(arr);
+  return out;
+}
+
+function parseCalendar(arr, tour) {
   const now = Date.now() - 864e5;
-  const out = (arr || [])
-    .map((c) => (c && typeof c === 'object' ? { name: c.label || c.name, start: c.startDate, end: c.endDate } : null))
-    .filter((c) => c && c.name && c.start)
+  const out = flatCal(arr)
+    .map((c) => ({
+      name: c.label || c.name || c.displayName,
+      start: c.startDate || c.start,
+      end: c.endDate || c.end,
+    }))
+    .filter((c) => c.name && c.start)
     .filter((c) => new Date(c.end || c.start).getTime() >= now && new Date(c.start) <= US_OPEN_LIMIT);
   const seen = new Set();
   return out
@@ -74,13 +115,46 @@ function parseCalendar(arr) {
       return true;
     })
     .sort((a, b) => new Date(a.start) - new Date(b.start))
-    .map((c) => {
-      let big = '';
-      if (/us open|australian open|roland|french open|wimbledon/i.test(c.name)) big = 'Grand Slam';
-      else if (/atp finals/i.test(c.name)) big = 'Finales';
-      else if (/masters|indian wells|miami open|monte.carlo|madrid open|italian open|internazionali|canadian open|national bank open|cincinnati/i.test(c.name)) big = 'Masters / 1000';
-      return { ...c, big };
-    });
+    .map((c) => ({ ...c, cat: catOf(c.name, tour) }));
+}
+
+// Challengers: solo calendario (próximos 120 días). Si ningún feed responde, devuelve []
+async function challengerCalendar() {
+  for (const slug of CH_SLUGS) {
+    try {
+      const sb = await getJSON(`${ESPN}/tennis/${slug}/scoreboard`);
+      let cal = parseCalendar(sb.leagues?.[0]?.calendar, 'ATP');
+      if (!cal.length) {
+        cal = (sb.events || [])
+          .map((ev) => ({ name: ev.name || ev.shortName, start: ev.date, end: ev.endDate }))
+          .filter((c) => c.name && c.start);
+      }
+      cal = cal
+        .map((c) => ({ ...c, cat: 'CH' }))
+        .filter((c) => new Date(c.start) <= addDays(new Date(), 120));
+      if (cal.length) {
+        console.log(`Challenger: ${cal.length} torneos vía ${slug}`);
+        return cal;
+      }
+      console.warn(`Challenger ${slug}: respondió pero sin torneos`);
+    } catch (e) {
+      console.warn(`Challenger ${slug}: ${e.message}`);
+    }
+  }
+  console.warn('Challenger: ningún feed respondió');
+  return [];
+}
+
+function mergeCal(a, b) {
+  const seen = new Set();
+  return [...a, ...b]
+    .filter((c) => {
+      const k = norm(c.name) + c.start;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .sort((x, y) => new Date(x.start) - new Date(y.start));
 }
 
 async function tenis() {
@@ -103,11 +177,12 @@ async function tenis() {
     } catch {
       continue;
     }
-    if (!calendarMen.length) calendarMen = parseCalendar(sb.leagues?.[0]?.calendar);
+    if (!calendarMen.length) calendarMen = parseCalendar(sb.leagues?.[0]?.calendar, 'ATP');
     for (const ev of sb.events || []) {
       let t = tournaments.get(ev.id);
       if (!t) {
-        t = { id: ev.id, name: ev.name || ev.shortName, start: ev.date, end: ev.endDate, matches: new Map() };
+        const name = ev.name || ev.shortName;
+        t = { id: ev.id, name, cat: catOf(name, 'ATP'), start: ev.date, end: ev.endDate, matches: new Map() };
         tournaments.set(ev.id, t);
       }
       for (const g of ev.groupings || []) {
@@ -133,16 +208,19 @@ async function tenis() {
     }
   }
 
+  calendarMen = mergeCal(calendarMen, await challengerCalendar());
+
   let calendarWomen = [];
   try {
     const w = await getJSON(`${ESPN}/tennis/wta/scoreboard`);
-    calendarWomen = parseCalendar(w.leagues?.[0]?.calendar);
+    calendarWomen = parseCalendar(w.leagues?.[0]?.calendar, 'WTA');
   } catch {}
 
   const list = [...tournaments.values()]
     .map((t) => ({
       id: t.id,
       name: t.name,
+      cat: t.cat,
       start: t.start,
       end: t.end,
       matches: [...t.matches.values()].sort((a, b) => new Date(a.date) - new Date(b.date)),
@@ -163,7 +241,7 @@ async function nfl() {
   const pull = async (w, t) => {
     try {
       const d = await getJSON(`${ESPN}/football/nfl/scoreboard?seasontype=${t}&week=${w}`);
-      const games = (d.events || []).map(parseGame);
+      const games = (d.events || []).map(parseGame).sort((a, b) => new Date(a.date) - new Date(b.date));
       if (games.length) weeks.push({ week: w, type: t, label: t === 3 ? `Playoffs ${w}` : `Semana ${w}`, games });
     } catch {}
   };
@@ -222,38 +300,87 @@ async function f1() {
     })
     .filter((r) => r.race && new Date(r.race).getTime() + 3 * 36e5 >= now);
 
+  const fullName = (d) => `${d.givenName} ${d.familyName}`;
+
+  // Última carrera: resultados, parrilla de salida, vuelta rápida
   let last = null;
   try {
     const l = await getJSON(`${JOLPICA}/current/last/results.json`);
     const r = l.MRData?.RaceTable?.Races?.[0];
-    if (r)
+    if (r) {
+      const raw = r.Results || [];
+      const fl = raw.find((x) => x.FastestLap?.rank === '1');
       last = {
         name: r.raceName,
         date: r.date,
-        podium: (r.Results || []).slice(0, 3).map((x) => ({
+        podium: raw.slice(0, 3).map((x) => ({
           pos: x.position,
-          name: `${x.Driver.givenName} ${x.Driver.familyName}`,
+          name: fullName(x.Driver),
           team: x.Constructor?.name || '',
         })),
-        results: (r.Results || []).map((x) => ({
+        results: raw.map((x) => ({
           pos: x.position,
-          name: `${x.Driver.givenName} ${x.Driver.familyName}`,
+          name: fullName(x.Driver),
           team: x.Constructor?.name || '',
           time: x.Time?.time || x.status || '',
           points: Number(x.points),
+          grid: x.grid != null && x.grid !== '' ? Number(x.grid) : null,
+          status: x.status || '',
+          fl: x.FastestLap?.rank === '1',
+        })),
+        fastest: fl
+          ? { name: fullName(fl.Driver), team: fl.Constructor?.name || '', time: fl.FastestLap?.Time?.time || '' }
+          : null,
+      };
+    }
+  } catch {}
+
+  // Clasificación de la última carrera (pole, Q1/Q2/Q3)
+  let quali = null;
+  try {
+    const q = await getJSON(`${JOLPICA}/current/last/qualifying.json`);
+    const r = q.MRData?.RaceTable?.Races?.[0];
+    if (r && (r.QualifyingResults || []).length) {
+      quali = {
+        name: r.raceName,
+        date: r.date,
+        results: r.QualifyingResults.map((x) => ({
+          pos: x.position,
+          name: fullName(x.Driver),
+          team: x.Constructor?.name || '',
+          q1: x.Q1 || '',
+          q2: x.Q2 || '',
+          q3: x.Q3 || '',
         })),
       };
-  } catch {}
+    }
+  } catch (e) {
+    console.warn('F1 clasificación:', e?.message);
+  }
+
+  // Campeonato de constructores
+  let constructors = [];
+  try {
+    const c = await getJSON(`${JOLPICA}/current/constructorStandings.json`);
+    constructors = (c.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || []).map((x) => ({
+      pos: Number(x.position),
+      name: x.Constructor?.name || '',
+      points: Number(x.points),
+      wins: Number(x.wins),
+    }));
+  } catch (e) {
+    console.warn('F1 constructores:', e?.message);
+  }
 
   const drivers = (std.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || []).map((d) => ({
     pos: Number(d.position),
-    name: `${d.Driver.givenName} ${d.Driver.familyName}`,
+    name: fullName(d.Driver),
     team: d.Constructors?.[0]?.name || '',
     nationality: d.Driver.nationality || '',
     points: Number(d.points),
     wins: Number(d.wins),
   }));
-  return { last, races, drivers };
+  return { last, quali, races, drivers, constructors };
 }
 
 /* ---------------- FÚTBOL ---------------- */
