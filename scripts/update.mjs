@@ -1,4 +1,4 @@
-// scripts/update.mjs — baja datos de Tenis, NFL, F1, Fútbol y Noticias y los guarda en data.json
+ // scripts/update.mjs — baja datos de Tenis, NFL, F1, Fútbol y Noticias y los guarda en data.json
 import { readFile, writeFile } from 'node:fs/promises';
 
 const OUT = 'data.json';
@@ -20,6 +20,7 @@ const LIGAS = [
 ];
 
 const NFL_WEEKS = 18;
+const NFL_POST = ['', 'Wild Card', 'Divisional', 'Final de conferencia', 'Pro Bowl', 'Super Bowl'];
 
 // Posibles direcciones del feed de Challengers en ESPN (no confirmadas: se prueban en orden)
 const CH_SLUGS = ['atp-challenger', 'challenger', 'atp_challenger'];
@@ -241,25 +242,26 @@ async function tenis() {
 }
 
 /* ---------------- NFL ---------------- */
+// Baja pretemporada (tipo 1), temporada regular (tipo 2) y playoffs (tipo 3)
 async function nfl() {
-  const cur = await getJSON(`${ESPN}/football/nfl/scoreboard`);
-  const type = cur.season?.type;
-  const week = cur.week?.number || 1;
-  const weeks = [];
   const pull = async (w, t) => {
     try {
       const d = await getJSON(`${ESPN}/football/nfl/scoreboard?seasontype=${t}&week=${w}`);
       const games = (d.events || []).map(parseGame).sort((a, b) => new Date(a.date) - new Date(b.date));
-      if (games.length) weeks.push({ week: w, type: t, label: t === 3 ? `Playoffs ${w}` : `Semana ${w}`, games });
-    } catch {}
+      if (!games.length) return null;
+      const label = t === 3 ? NFL_POST[w] || `Playoffs ${w}` : t === 1 ? `Pretemporada ${w}` : `Semana ${w}`;
+      return { week: w, type: t, label, games };
+    } catch {
+      return null;
+    }
   };
-  if (type === 2) {
-    for (let w = Math.max(1, week - 1); w <= NFL_WEEKS; w++) await pull(w, 2);
-  } else if (type === 3) {
-    await pull(week, 3);
-  } else {
-    for (let w = 1; w <= NFL_WEEKS; w++) await pull(w, 2);
+  const weeks = [];
+  for (const [t, n] of [[1, 4], [2, NFL_WEEKS], [3, 5]]) {
+    const jobs = [];
+    for (let w = 1; w <= n; w++) jobs.push(pull(w, t));
+    (await Promise.all(jobs)).filter(Boolean).forEach((x) => weeks.push(x));
   }
+  if (!weeks.length) throw new Error('NFL sin partidos');
 
   const standings = { AFC: [], NFC: [] };
   try {
