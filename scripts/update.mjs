@@ -1,4 +1,4 @@
- // scripts/update.mjs — baja datos de Tenis, NFL, F1, Fútbol y Noticias y los guarda en data.json
+// scripts/update.mjs — baja datos de Tenis, NFL, F1, Fútbol y Noticias y los guarda en data.json
 import { readFile, writeFile } from 'node:fs/promises';
 
 const OUT = 'data.json';
